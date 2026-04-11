@@ -1,0 +1,43 @@
+<Window x:Class="RefreshToAccess2.Views.Inject.MinecraftProcSelectorView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        mc:Ignorable="d"
+        Style="{StaticResource MaterialDesignWindow}"
+        Title="Select Minecraft Process"
+        Height="260" Width="440"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False">
+
+    <StackPanel Margin="28">
+
+        <!-- Heading -->
+        <TextBlock Text="Select Minecraft Process"
+                   Style="{StaticResource MaterialDesignHeadline6TextBlock}"
+                   Margin="0,0,0,20"/>
+
+        <!-- Process picker -->
+        <ComboBox x:Name="ProcComboBox"
+                  md:HintAssist.Hint="Running Minecraft instances"
+                  Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                  Height="48"
+                  Margin="0,0,0,20"/>
+
+        <!-- Buttons -->
+        <StackPanel Orientation="Horizontal"
+                    HorizontalAlignment="Right">
+            <Button Content="Refresh"
+                    Style="{StaticResource MaterialDesignOutlinedButton}"
+                    Width="100" Height="38"
+                    Margin="0,0,12,0"
+                    Click="OnRefresh"/>
+            <Button Content="Confirm"
+                    Width="100" Height="38"
+                    Click="OnConfirm"/>
+        </StackPanel>
+
+    </StackPanel>
+</Window>

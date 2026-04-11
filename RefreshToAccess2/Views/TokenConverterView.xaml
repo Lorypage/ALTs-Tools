@@ -1,0 +1,415 @@
+<UserControl x:Class="RefreshToAccess2.Views.TokenConverterView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:helpers="clr-namespace:RefreshToAccess2.Helpers"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="680" d:DesignWidth="850">
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolVis"/>
+        <helpers:InvertBoolConverter  x:Key="InvertBoolConverter"/>
+
+        <Style x:Key="SmallActionButton" TargetType="Button"
+               BasedOn="{StaticResource MaterialDesignIconButton}">
+            <Setter Property="Width" Value="32"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Opacity" Value="0.7"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Opacity" Value="1"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="TokenFieldStyle" TargetType="TextBox"
+               BasedOn="{StaticResource MaterialDesignOutlinedTextBox}">
+            <Setter Property="FontFamily" Value="Cascadia Mono, Consolas, Courier New"/>
+            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="AcceptsReturn" Value="True"/>
+            <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="md:HintAssist.FloatingScale" Value="0.82"/>
+            <Setter Property="Padding" Value="14,12"/>
+        </Style>
+
+        <Style x:Key="MicroLabel" TargetType="TextBlock"
+               BasedOn="{StaticResource MaterialDesignCaptionTextBlock}">
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Opacity" Value="0.38"/>
+            <Setter Property="Margin" Value="0,0,0,1"/>
+        </Style>
+
+        <Style x:Key="SectionLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Opacity" Value="0.42"/>
+        </Style>
+    </UserControl.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                  HorizontalScrollBarVisibility="Disabled">
+
+        <Grid Margin="36,24,36,28">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- ─────────────────────────────────────────────
+                 HEADER
+                 ───────────────────────────────────────────── -->
+            <Grid Grid.Row="0" Margin="0,0,0,24">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Row="0"
+           Text="Token Converter"
+           Style="{StaticResource MaterialDesignHeadline5TextBlock}"
+           Margin="0,0,0,20"/>
+
+                <!-- Client ID chip -->
+                <Border Grid.Column="1"
+                        VerticalAlignment="Center"
+                        CornerRadius="20"
+                        Padding="6,0,4,0"
+                        Height="40"
+                        Background="{DynamicResource MaterialDesign.Brush.Card.Background}"
+                        BorderBrush="{DynamicResource MaterialDesignDivider}"
+                        BorderThickness="1">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <md:PackIcon Kind="ShieldKeyOutline"
+                                     Width="16" Height="16"
+                                     VerticalAlignment="Center"
+                                     Opacity="0.55"
+                                     Margin="6,0,8,0"/>
+                        <ComboBox SelectedIndex="{Binding SelectedClientIndex}"
+                                  SelectionChanged="OnClientSelectionChanged"
+                                  Style="{StaticResource MaterialDesignComboBox}"
+                                  FontSize="12.5"
+                                  MinWidth="130"
+                                  BorderThickness="0"
+                                  md:HintAssist.Hint="ClientID"
+                                  md:TextFieldAssist.DecorationVisibility="Collapsed"
+                                  md:TextFieldAssist.RippleOnFocusEnabled="True"
+                                  VerticalAlignment="Center">
+                            <ComboBoxItem Content="Vanilla"/>
+                            <ComboBoxItem Content="HMCL"/>
+                            <ComboBoxItem Content="PCL"/>
+                            <ComboBoxItem Content="Essential"/>
+                            <ComboBoxItem Content="Tzi Checker"/>
+                            <ComboBoxItem Content="Mal Checker"/>
+                            <ComboBoxItem Content="In-Game Account Switcher"/>
+                            <ComboBoxItem Content="ksyz Alt Manager"/>
+                            <ComboBoxItem Content="BakaXL"/>
+                            <ComboBoxItem Content="LabyMod"/>
+                            <ComboBoxItem Content="Custom…"/>
+                        </ComboBox>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- ─────────────────────────────────────────────
+                 MAIN CONTENT — side-by-side tokens
+                 ───────────────────────────────────────────── -->
+            <Grid Grid.Row="1" Margin="0,0,0,20">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="20"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- LEFT: Refresh Token -->
+                <md:Card Grid.Column="0" Grid.Row="0"
+                         md:ElevationAssist.Elevation="Dp1"
+                         UniformCornerRadius="18"
+                         Padding="20,18,20,16"
+                         VerticalAlignment="Stretch">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <DockPanel Grid.Row="0" Margin="0,0,0,10">
+                            <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
+                                <Button Content="{md:PackIcon Kind=ContentPaste, Size=18}"
+                                        Style="{StaticResource SmallActionButton}"
+                                        ToolTip="Paste from clipboard"
+                                        Click="OnPasteRefreshToken"/>
+                                <Button Content="{md:PackIcon Kind=BackspaceOutline, Size=17}"
+                                        Style="{StaticResource SmallActionButton}"
+                                        ToolTip="Clear"
+                                        Click="OnClearRefreshToken"
+                                        Margin="2,0,0,0"/>
+                            </StackPanel>
+
+                            <StackPanel Orientation="Horizontal">
+                                <md:PackIcon Kind="LoginVariant"
+                                             Width="18" Height="18"
+                                             VerticalAlignment="Center"
+                                             Opacity="0.45"
+                                             Margin="0,0,8,0"/>
+                                <TextBlock Text="REFRESH TOKEN"
+                                           Style="{StaticResource SectionLabel}"
+                                           VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </DockPanel>
+
+                        <TextBox Grid.Row="1"
+                                 Text="{Binding RefreshToken, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource TokenFieldStyle}"
+                                 md:HintAssist.Hint="Refresh Token"
+                                 MinHeight="160"
+                                 MaxHeight="280"/>
+
+                        <TextBlock Grid.Row="2"
+                                   HorizontalAlignment="Right"
+                                   Margin="0,6,4,0"
+                                   FontSize="10.5"
+                                   Opacity="0.3"
+                                   FontFamily="Cascadia Mono, Consolas">
+                            <Run Text="{Binding RefreshToken.Length, Mode=OneWay, FallbackValue=0}"/>
+                            <Run Text="chars"/>
+                        </TextBlock>
+                    </Grid>
+                </md:Card>
+
+                <!-- CENTER: directional hint -->
+                <Grid Grid.Column="1" Grid.Row="0"
+                      VerticalAlignment="Center"
+                      HorizontalAlignment="Center">
+                    <md:PackIcon Kind="ChevronRight"
+                                 Width="22" Height="22"
+                                 Opacity="0.18"/>
+                </Grid>
+
+                <!-- RIGHT: Access Token -->
+                <md:Card Grid.Column="2" Grid.Row="0"
+                         md:ElevationAssist.Elevation="Dp1"
+                         UniformCornerRadius="18"
+                         Padding="20,18,20,16"
+                         VerticalAlignment="Stretch">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <DockPanel Grid.Row="0" Margin="0,0,0,10">
+                            <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
+                                <Button Content="{md:PackIcon Kind=ContentCopy, Size=18}"
+                                        Style="{StaticResource SmallActionButton}"
+                                        ToolTip="Copy to clipboard"
+                                        Click="OnCopyAccessToken"/>
+                                <Button Content="{md:PackIcon Kind=BackspaceOutline, Size=17}"
+                                        Style="{StaticResource SmallActionButton}"
+                                        ToolTip="Clear"
+                                        Click="OnClearAccessToken"
+                                        Margin="2,0,0,0"/>
+                            </StackPanel>
+
+                            <StackPanel Orientation="Horizontal">
+                                <md:PackIcon Kind="LogoutVariant"
+                                             Width="18" Height="18"
+                                             VerticalAlignment="Center"
+                                             Opacity="0.45"
+                                             Margin="0,0,8,0"/>
+                                <TextBlock Text="ACCESS TOKEN"
+                                           Style="{StaticResource SectionLabel}"
+                                           VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </DockPanel>
+
+                        <TextBox Grid.Row="1"
+                                 Text="{Binding AccessToken, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource TokenFieldStyle}"
+                                 md:HintAssist.Hint="Access Token"
+                                 IsReadOnly="True"
+                                 MinHeight="160"
+                                 MaxHeight="160"/>
+
+                        <TextBlock Grid.Row="2"
+                                   HorizontalAlignment="Right"
+                                   Margin="0,6,4,0"
+                                   FontSize="10.5"
+                                   Opacity="0.3"
+                                   FontFamily="Cascadia Mono, Consolas">
+                            <Run Text="{Binding AccessToken.Length, Mode=OneWay, FallbackValue=0}"/>
+                            <Run Text="chars"/>
+                        </TextBlock>
+                    </Grid>
+                </md:Card>
+
+                <!-- Profile info strip -->
+                <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3"
+                        Margin="0,16,0,0"
+                        CornerRadius="14"
+                        Padding="20,14"
+                        Background="{DynamicResource MaterialDesign.Brush.Card.Background}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>  <!-- player icon -->
+                            <ColumnDefinition Width="*"/>     <!-- player text -->
+                            <ColumnDefinition Width="Auto"/>  <!-- copy name btn -->
+                            <ColumnDefinition Width="24"/>    <!-- divider gap -->
+                            <ColumnDefinition Width="Auto"/>  <!-- uuid icon -->
+                            <ColumnDefinition Width="*"/>     <!-- uuid text -->
+                            <ColumnDefinition Width="Auto"/>  <!-- copy uuid btn -->
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Player icon -->
+                        <md:PackIcon Grid.Column="0"
+                                     Kind="Account"
+                                     Width="18" Height="18"
+                                     VerticalAlignment="Center"
+                                     Opacity="0.4"
+                                     Margin="0,0,10,0"/>
+
+                        <!-- Player text -->
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="PLAYER"
+                                       Style="{StaticResource MicroLabel}"/>
+                            <TextBlock Text="{Binding ProfileName, FallbackValue=—}"
+                                       FontFamily="Cascadia Mono, Consolas"
+                                       FontSize="13"
+                                       Opacity="0.85"/>
+                        </StackPanel>
+
+                        <!-- Copy name button (grouped with player, sits before divider) -->
+                        <Button Grid.Column="2"
+                                Content="{md:PackIcon Kind=ContentCopy, Size=15}"
+                                Style="{StaticResource SmallActionButton}"
+                                ToolTip="Copy player name"
+                                Click="OnCopyProfileName"
+                                Width="28" Height="28"
+                                Margin="8,0,0,0"/>
+
+                        <!-- Vertical divider -->
+                        <Border Grid.Column="3"
+                                Width="1"
+                                VerticalAlignment="Stretch"
+                                Margin="0,2"
+                                HorizontalAlignment="Center"
+                                Background="{DynamicResource MaterialDesignDivider}"
+                                Opacity="0.4"/>
+
+                        <!-- UUID icon -->
+                        <md:PackIcon Grid.Column="4"
+                                     Kind="Fingerprint"
+                                     Width="18" Height="18"
+                                     VerticalAlignment="Center"
+                                     Opacity="0.4"
+                                     Margin="0,0,10,0"/>
+
+                        <!-- UUID text -->
+                        <StackPanel Grid.Column="5" VerticalAlignment="Center">
+                            <TextBlock Text="UUID"
+                                       Style="{StaticResource MicroLabel}"/>
+                            <TextBlock Text="{Binding PlayerUuid, FallbackValue=—}"
+                                       FontFamily="Cascadia Mono, Consolas"
+                                       FontSize="13"
+                                       Opacity="0.85"/>
+                        </StackPanel>
+
+                        <!-- Copy UUID button -->
+                        <Button Grid.Column="6"
+                                Content="{md:PackIcon Kind=ContentCopy, Size=15}"
+                                Style="{StaticResource SmallActionButton}"
+                                ToolTip="Copy UUID"
+                                Click="OnCopyUuid"
+                                Width="28" Height="28"
+                                Margin="8,0,0,0"/>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <!-- ─────────────────────────────────────────────
+                 ACTION BAR
+                 ───────────────────────────────────────────── -->
+            <Grid Grid.Row="2" Margin="0,0,0,4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <Button Grid.Column="0"
+                        Height="52"
+                        HorizontalAlignment="Stretch"
+                        md:ButtonAssist.CornerRadius="14"
+                        md:ElevationAssist.Elevation="Dp3"
+                        Style="{StaticResource MaterialDesignRaisedButton}"
+                        FontSize="15"
+                        FontWeight="SemiBold"
+                        IsEnabled="{Binding IsBusy, Converter={StaticResource InvertBoolConverter}}"
+                        Click="OnConvertClicked">
+                    <StackPanel Orientation="Horizontal">
+                        <md:PackIcon Kind="SwapHorizontal"
+                                     Width="22" Height="22"
+                                     VerticalAlignment="Center"
+                                     Margin="0,0,10,0"/>
+                        <TextBlock Text="{Binding ConvertButtonText}"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+                <!-- Auto-copy toggle -->
+                <Border Grid.Column="1"
+                        Margin="14,0,0,0"
+                        CornerRadius="14"
+                        Padding="14,0,10,0"
+                        Height="52"
+                        Background="{DynamicResource MaterialDesign.Brush.Card.Background}"
+                        BorderBrush="{DynamicResource MaterialDesignDivider}"
+                        BorderThickness="1"
+                        ToolTip="Automatically copy the access token after conversion">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <md:PackIcon Kind="ContentCopy"
+                                     Width="16" Height="16"
+                                     Opacity="0.4"
+                                     VerticalAlignment="Center"
+                                     Margin="0,0,10,0"/>
+                        <TextBlock Text="Auto-copy"
+                                   FontSize="12.5"
+                                   VerticalAlignment="Center"
+                                   Opacity="0.65"
+                                   Margin="0,0,12,0"/>
+                        <ToggleButton Style="{StaticResource MaterialDesignSwitchToggleButton}"
+                                      IsChecked="{Binding AutoCopyToken}"
+                                      VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- ─────────────────────────────────────────────
+                 STATUS
+                 ───────────────────────────────────────────── -->
+            <StackPanel Grid.Row="3" Margin="0,10,0,0">
+                <ProgressBar IsIndeterminate="True"
+                             Height="2"
+                             Visibility="{Binding IsBusy, Converter={StaticResource BoolVis}}"/>
+
+                <TextBlock x:Name="StatusLabel"
+                           Text="{Binding StatusMessage}"
+                           HorizontalAlignment="Center"
+                           Margin="0,10,0,0"
+                           Opacity="0"
+                           FontSize="12.5"
+                           Style="{StaticResource MaterialDesignBody2TextBlock}"/>
+            </StackPanel>
+        </Grid>
+    </ScrollViewer>
+</UserControl>

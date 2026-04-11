@@ -1,0 +1,89 @@
+<UserControl x:Class="RefreshToAccess2.Views.AltManagerView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes">
+
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <!-- Search bar -->
+            <RowDefinition Height="Auto"/>
+            <!-- Data grid (stretches) -->
+            <RowDefinition Height="*"/>
+            <!-- Action buttons -->
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- ── Search ── -->
+        <TextBox Grid.Row="0"
+                 Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                 Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                 md:HintAssist.Hint="Search alts…"
+                 Width="320"
+                 HorizontalAlignment="Left"
+                 Margin="0,0,0,12"/>
+
+        <!-- ── Data grid ── -->
+        <DataGrid Grid.Row="1"
+          x:Name="AltGrid"
+          ItemsSource="{Binding Profiles}"
+          SelectedIndex="{Binding SelectedIndex}"
+          AutoGenerateColumns="False"
+          CanUserAddRows="False"
+          IsReadOnly="True"
+          SelectionMode="Single"
+          EnableRowVirtualization="True"
+          EnableColumnVirtualization="True"
+          VirtualizingPanel.IsVirtualizing="True"
+          VirtualizingPanel.VirtualizationMode="Recycling"
+          VirtualizingPanel.ScrollUnit="Pixel"
+          ScrollViewer.CanContentScroll="True"
+          ScrollViewer.IsDeferredScrollingEnabled="True"
+          RowDetailsVisibilityMode="Collapsed">
+
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Name"
+                                    Binding="{Binding profileData.IGN}"
+                                    Width="130"/>
+                <DataGridTextColumn Header="Refresh Token"
+                                    Binding="{Binding profileData.RefToken}"
+                                    Width="300"/>
+                <DataGridTextColumn Header="Access Token"
+                                    Binding="{Binding profileData.AccToken}"
+                                    Width="300"/>
+                <DataGridTextColumn Header="Login Date"
+                                    Binding="{Binding loginDate}"
+                                    Width="150"/>
+                <DataGridTextColumn Header="UUID"
+                                    Binding="{Binding profileData.UUID}"
+                                    Width="260"/>
+                <DataGridTextColumn Header="Client ID"
+                                    Binding="{Binding profileData.ClientId}"
+                                    Width="180"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- ── Action buttons ── -->
+        <WrapPanel Grid.Row="2" Margin="0,12,0,0" Orientation="Horizontal">
+            <Button Content="Copy Name"       Width="140" Height="40" Margin="0,0,8,8" Click="OnCopyName"/>
+            <Button Content="Copy AccToken"   Width="140" Height="40" Margin="0,0,8,8" Click="OnCopyAccToken"/>
+            <Button Content="Copy RefToken"   Width="140" Height="40" Margin="0,0,8,8" Click="OnCopyRefToken"/>
+            <Button Content="Copy UUID"       Width="140" Height="40" Margin="0,0,8,8" Click="OnCopyUuid"/>
+            <Button Content="Refresh Token"   Width="140" Height="40" Margin="0,0,8,8" Click="OnRefreshToken"/>
+            <Button Content="Export…"         Width="120" Height="40" Margin="0,0,8,8" Click="OnExport"/>
+            <Button Content="Import…"         Width="120" Height="40" Margin="0,0,8,8" Click="OnImport"/>
+            <!-- Destructive actions use the error / warning style -->
+            <Button Content="Delete Selected"
+                    Width="150" Height="40" Margin="0,0,8,8"
+                    Style="{StaticResource MaterialDesignOutlinedButton}"
+                    Foreground="{DynamicResource MaterialDesignValidationErrorBrush}"
+                    BorderBrush="{DynamicResource MaterialDesignValidationErrorBrush}"
+                    Click="OnDeleteSelected"/>
+            <Button Content="Delete All"
+                    Width="120" Height="40" Margin="0,0,8,8"
+                    Style="{StaticResource MaterialDesignOutlinedButton}"
+                    Foreground="{DynamicResource MaterialDesignValidationErrorBrush}"
+                    BorderBrush="{DynamicResource MaterialDesignValidationErrorBrush}"
+                    Click="OnDeleteAll"/>
+        </WrapPanel>
+    </Grid>
+</UserControl>

@@ -1,0 +1,225 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <AssemblyName>TokenTools</AssemblyName>
+    <NoWin32Manifest>true</NoWin32Manifest>
+    <ApplicationIcon>coolpig.ico</ApplicationIcon>
+    <AssemblyVersion>2.1</AssemblyVersion>
+    <FileVersion>2.1</FileVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DebugType>none</DebugType>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DebugType>none</DebugType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="panoramas\aquatic\panorama_0.jpg" />
+    <None Remove="panoramas\aquatic\panorama_1.jpg" />
+    <None Remove="panoramas\aquatic\panorama_2.jpg" />
+    <None Remove="panoramas\aquatic\panorama_3.jpg" />
+    <None Remove="panoramas\aquatic\panorama_4.jpg" />
+    <None Remove="panoramas\aquatic\panorama_5.jpg" />
+    <None Remove="panoramas\buzzy_bees\panorama_0.jpg" />
+    <None Remove="panoramas\buzzy_bees\panorama_1.jpg" />
+    <None Remove="panoramas\buzzy_bees\panorama_2.jpg" />
+    <None Remove="panoramas\buzzy_bees\panorama_3.jpg" />
+    <None Remove="panoramas\buzzy_bees\panorama_4.jpg" />
+    <None Remove="panoramas\buzzy_bees\panorama_5.jpg" />
+    <None Remove="panoramas\caves_and_cliffs_new\panorama_0.jpg" />
+    <None Remove="panoramas\caves_and_cliffs_new\panorama_1.jpg" />
+    <None Remove="panoramas\caves_and_cliffs_new\panorama_2.jpg" />
+    <None Remove="panoramas\caves_and_cliffs_new\panorama_3.jpg" />
+    <None Remove="panoramas\caves_and_cliffs_new\panorama_4.jpg" />
+    <None Remove="panoramas\caves_and_cliffs_new\panorama_5.jpg" />
+    <None Remove="panoramas\caves_and_cliffs_old\panorama_0.jpg" />
+    <None Remove="panoramas\caves_and_cliffs_old\panorama_1.jpg" />
+    <None Remove="panoramas\caves_and_cliffs_old\panorama_2.jpg" />
+    <None Remove="panoramas\caves_and_cliffs_old\panorama_3.jpg" />
+    <None Remove="panoramas\caves_and_cliffs_old\panorama_4.jpg" />
+    <None Remove="panoramas\caves_and_cliffs_old\panorama_5.jpg" />
+    <None Remove="panoramas\chase_the_skies\panorama_0.jpg" />
+    <None Remove="panoramas\chase_the_skies\panorama_1.jpg" />
+    <None Remove="panoramas\chase_the_skies\panorama_2.jpg" />
+    <None Remove="panoramas\chase_the_skies\panorama_3.jpg" />
+    <None Remove="panoramas\chase_the_skies\panorama_4.jpg" />
+    <None Remove="panoramas\chase_the_skies\panorama_5.jpg" />
+    <None Remove="panoramas\nether\panorama_0.jpg" />
+    <None Remove="panoramas\nether\panorama_1.jpg" />
+    <None Remove="panoramas\nether\panorama_2.jpg" />
+    <None Remove="panoramas\nether\panorama_3.jpg" />
+    <None Remove="panoramas\nether\panorama_4.jpg" />
+    <None Remove="panoramas\nether\panorama_5.jpg" />
+    <None Remove="panoramas\old\panorama_0.jpg" />
+    <None Remove="panoramas\old\panorama_1.jpg" />
+    <None Remove="panoramas\old\panorama_2.jpg" />
+    <None Remove="panoramas\old\panorama_3.jpg" />
+    <None Remove="panoramas\old\panorama_4.jpg" />
+    <None Remove="panoramas\old\panorama_5.jpg" />
+    <None Remove="panoramas\spring_to_life\panorama_0.jpg" />
+    <None Remove="panoramas\spring_to_life\panorama_1.jpg" />
+    <None Remove="panoramas\spring_to_life\panorama_2.jpg" />
+    <None Remove="panoramas\spring_to_life\panorama_3.jpg" />
+    <None Remove="panoramas\spring_to_life\panorama_4.jpg" />
+    <None Remove="panoramas\spring_to_life\panorama_5.jpg" />
+    <None Remove="panoramas\the_garden_awakens\panorama_0.jpg" />
+    <None Remove="panoramas\the_garden_awakens\panorama_1.jpg" />
+    <None Remove="panoramas\the_garden_awakens\panorama_2.jpg" />
+    <None Remove="panoramas\the_garden_awakens\panorama_3.jpg" />
+    <None Remove="panoramas\the_garden_awakens\panorama_4.jpg" />
+    <None Remove="panoramas\the_garden_awakens\panorama_5.jpg" />
+    <None Remove="panoramas\the_wild\panorama_0.jpg" />
+    <None Remove="panoramas\the_wild\panorama_1.jpg" />
+    <None Remove="panoramas\the_wild\panorama_2.jpg" />
+    <None Remove="panoramas\the_wild\panorama_3.jpg" />
+    <None Remove="panoramas\the_wild\panorama_4.jpg" />
+    <None Remove="panoramas\the_wild\panorama_5.jpg" />
+    <None Remove="panoramas\tiny_takeover\panorama_0.jpg" />
+    <None Remove="panoramas\tiny_takeover\panorama_1.jpg" />
+    <None Remove="panoramas\tiny_takeover\panorama_2.jpg" />
+    <None Remove="panoramas\tiny_takeover\panorama_3.jpg" />
+    <None Remove="panoramas\tiny_takeover\panorama_4.jpg" />
+    <None Remove="panoramas\tiny_takeover\panorama_5.jpg" />
+    <None Remove="panoramas\trails_and_tales\panorama_0.jpg" />
+    <None Remove="panoramas\trails_and_tales\panorama_1.jpg" />
+    <None Remove="panoramas\trails_and_tales\panorama_2.jpg" />
+    <None Remove="panoramas\trails_and_tales\panorama_3.jpg" />
+    <None Remove="panoramas\trails_and_tales\panorama_4.jpg" />
+    <None Remove="panoramas\trails_and_tales\panorama_5.jpg" />
+    <None Remove="panoramas\tricky_trials\panorama_0.jpg" />
+    <None Remove="panoramas\tricky_trials\panorama_1.jpg" />
+    <None Remove="panoramas\tricky_trials\panorama_2.jpg" />
+    <None Remove="panoramas\tricky_trials\panorama_3.jpg" />
+    <None Remove="panoramas\tricky_trials\panorama_4.jpg" />
+    <None Remove="panoramas\tricky_trials\panorama_5.jpg" />
+    <None Remove="panoramas\village_and_pillage\panorama_0.jpg" />
+    <None Remove="panoramas\village_and_pillage\panorama_1.jpg" />
+    <None Remove="panoramas\village_and_pillage\panorama_2.jpg" />
+    <None Remove="panoramas\village_and_pillage\panorama_3.jpg" />
+    <None Remove="panoramas\village_and_pillage\panorama_4.jpg" />
+    <None Remove="panoramas\village_and_pillage\panorama_5.jpg" />
+    <None Remove="TokenSwapper.dll" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="coolpig.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="TokenSwapper.dll" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="EasyCompressor.LZMA" Version="2.1.0" />
+    <PackageReference Include="MaterialDesignThemes" Version="5.3.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.16.0" />
+    <PackageReference Include="System.Management" Version="10.0.5" />
+    <PackageReference Include="Vortice.D3DCompiler" Version="3.8.3" />
+    <PackageReference Include="Vortice.Direct3D11" Version="3.8.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Models\" />
+    <Folder Include="Services\" />
+    <Folder Include="ViewModels\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="panoramas\aquatic\panorama_0.jpg" />
+    <Resource Include="panoramas\aquatic\panorama_1.jpg" />
+    <Resource Include="panoramas\aquatic\panorama_2.jpg" />
+    <Resource Include="panoramas\aquatic\panorama_3.jpg" />
+    <Resource Include="panoramas\aquatic\panorama_4.jpg" />
+    <Resource Include="panoramas\aquatic\panorama_5.jpg" />
+    <Resource Include="panoramas\buzzy_bees\panorama_0.jpg" />
+    <Resource Include="panoramas\buzzy_bees\panorama_1.jpg" />
+    <Resource Include="panoramas\buzzy_bees\panorama_2.jpg" />
+    <Resource Include="panoramas\buzzy_bees\panorama_3.jpg" />
+    <Resource Include="panoramas\buzzy_bees\panorama_4.jpg" />
+    <Resource Include="panoramas\buzzy_bees\panorama_5.jpg" />
+    <Resource Include="panoramas\caves_and_cliffs_new\panorama_0.jpg" />
+    <Resource Include="panoramas\caves_and_cliffs_new\panorama_1.jpg" />
+    <Resource Include="panoramas\caves_and_cliffs_new\panorama_2.jpg" />
+    <Resource Include="panoramas\caves_and_cliffs_new\panorama_3.jpg" />
+    <Resource Include="panoramas\caves_and_cliffs_new\panorama_4.jpg" />
+    <Resource Include="panoramas\caves_and_cliffs_new\panorama_5.jpg" />
+    <Resource Include="panoramas\caves_and_cliffs_old\panorama_0.jpg" />
+    <Resource Include="panoramas\caves_and_cliffs_old\panorama_1.jpg" />
+    <Resource Include="panoramas\caves_and_cliffs_old\panorama_2.jpg" />
+    <Resource Include="panoramas\caves_and_cliffs_old\panorama_3.jpg" />
+    <Resource Include="panoramas\caves_and_cliffs_old\panorama_4.jpg" />
+    <Resource Include="panoramas\caves_and_cliffs_old\panorama_5.jpg" />
+    <Resource Include="panoramas\chase_the_skies\panorama_0.jpg" />
+    <Resource Include="panoramas\chase_the_skies\panorama_1.jpg" />
+    <Resource Include="panoramas\chase_the_skies\panorama_2.jpg" />
+    <Resource Include="panoramas\chase_the_skies\panorama_3.jpg" />
+    <Resource Include="panoramas\chase_the_skies\panorama_4.jpg" />
+    <Resource Include="panoramas\chase_the_skies\panorama_5.jpg" />
+    <Resource Include="panoramas\nether\panorama_0.jpg" />
+    <Resource Include="panoramas\nether\panorama_1.jpg" />
+    <Resource Include="panoramas\nether\panorama_2.jpg" />
+    <Resource Include="panoramas\nether\panorama_3.jpg" />
+    <Resource Include="panoramas\nether\panorama_4.jpg" />
+    <Resource Include="panoramas\nether\panorama_5.jpg" />
+    <Resource Include="panoramas\old\panorama_0.jpg" />
+    <Resource Include="panoramas\old\panorama_1.jpg" />
+    <Resource Include="panoramas\old\panorama_2.jpg" />
+    <Resource Include="panoramas\old\panorama_3.jpg" />
+    <Resource Include="panoramas\old\panorama_4.jpg" />
+    <Resource Include="panoramas\old\panorama_5.jpg" />
+    <Resource Include="panoramas\spring_to_life\panorama_0.jpg" />
+    <Resource Include="panoramas\spring_to_life\panorama_1.jpg" />
+    <Resource Include="panoramas\spring_to_life\panorama_2.jpg" />
+    <Resource Include="panoramas\spring_to_life\panorama_3.jpg" />
+    <Resource Include="panoramas\spring_to_life\panorama_4.jpg" />
+    <Resource Include="panoramas\spring_to_life\panorama_5.jpg" />
+    <Resource Include="panoramas\the_garden_awakens\panorama_0.jpg" />
+    <Resource Include="panoramas\the_garden_awakens\panorama_1.jpg" />
+    <Resource Include="panoramas\the_garden_awakens\panorama_2.jpg" />
+    <Resource Include="panoramas\the_garden_awakens\panorama_3.jpg" />
+    <Resource Include="panoramas\the_garden_awakens\panorama_4.jpg" />
+    <Resource Include="panoramas\the_garden_awakens\panorama_5.jpg" />
+    <Resource Include="panoramas\the_wild\panorama_0.jpg" />
+    <Resource Include="panoramas\the_wild\panorama_1.jpg" />
+    <Resource Include="panoramas\the_wild\panorama_2.jpg" />
+    <Resource Include="panoramas\the_wild\panorama_3.jpg" />
+    <Resource Include="panoramas\the_wild\panorama_4.jpg" />
+    <Resource Include="panoramas\the_wild\panorama_5.jpg" />
+    <Resource Include="panoramas\tiny_takeover\panorama_0.jpg" />
+    <Resource Include="panoramas\tiny_takeover\panorama_1.jpg" />
+    <Resource Include="panoramas\tiny_takeover\panorama_2.jpg" />
+    <Resource Include="panoramas\tiny_takeover\panorama_3.jpg" />
+    <Resource Include="panoramas\tiny_takeover\panorama_4.jpg" />
+    <Resource Include="panoramas\tiny_takeover\panorama_5.jpg" />
+    <Resource Include="panoramas\trails_and_tales\panorama_0.jpg" />
+    <Resource Include="panoramas\trails_and_tales\panorama_1.jpg" />
+    <Resource Include="panoramas\trails_and_tales\panorama_2.jpg" />
+    <Resource Include="panoramas\trails_and_tales\panorama_3.jpg" />
+    <Resource Include="panoramas\trails_and_tales\panorama_4.jpg" />
+    <Resource Include="panoramas\trails_and_tales\panorama_5.jpg" />
+    <Resource Include="panoramas\tricky_trials\panorama_0.jpg" />
+    <Resource Include="panoramas\tricky_trials\panorama_1.jpg" />
+    <Resource Include="panoramas\tricky_trials\panorama_2.jpg" />
+    <Resource Include="panoramas\tricky_trials\panorama_3.jpg" />
+    <Resource Include="panoramas\tricky_trials\panorama_4.jpg" />
+    <Resource Include="panoramas\tricky_trials\panorama_5.jpg" />
+    <Resource Include="panoramas\village_and_pillage\panorama_0.jpg" />
+    <Resource Include="panoramas\village_and_pillage\panorama_1.jpg" />
+    <Resource Include="panoramas\village_and_pillage\panorama_2.jpg" />
+    <Resource Include="panoramas\village_and_pillage\panorama_3.jpg" />
+    <Resource Include="panoramas\village_and_pillage\panorama_4.jpg" />
+    <Resource Include="panoramas\village_and_pillage\panorama_5.jpg" />
+  </ItemGroup>
+
+</Project>

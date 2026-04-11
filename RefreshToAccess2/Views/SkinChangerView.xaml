@@ -1,0 +1,325 @@
+<UserControl x:Class="RefreshToAccess2.Views.SkinChangerView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:RefreshToAccess2.Controls"
+             xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
+             Loaded="OnLoaded">
+
+    <Grid Margin="24,20,24,16">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="400"/>
+            <ColumnDefinition Width="24"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- ─── Left: controls ─── -->
+        <Grid Grid.Column="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <ScrollViewer Grid.Row="0"
+                          VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled"
+                          Margin="0,0,4,0">
+                <StackPanel>
+
+                    <!-- Header — clean type, no gimmicky icon circle -->
+                    <TextBlock Text="Skin Changer"
+                               FontSize="24"
+                               FontWeight="SemiBold"/>
+
+                    <TextBlock Text="Preview, search, and manage Minecraft skins."
+                               FontSize="13"
+                               Opacity="0.58"
+                               Margin="0,4,0,24"/>
+
+                    <!-- ── Current account ── -->
+                    <Border Padding="16"
+                            CornerRadius="12"
+                            Background="{DynamicResource MaterialDesignPaper}"
+                            BorderBrush="{DynamicResource MaterialDesignDivider}"
+                            BorderThickness="1"
+                            Margin="0,0,0,12">
+                        <StackPanel>
+                            <TextBlock Text="Current account"
+                                       FontSize="15"
+                                       FontWeight="SemiBold"
+                                       Margin="0,0,0,10"/>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="50"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0" Grid.Column="0"
+                                           Text="Name" Opacity="0.50" Margin="0,0,0,3"/>
+                                <TextBlock Grid.Row="0" Grid.Column="1"
+                                           Text="{Binding ProfileName}" FontWeight="Medium"
+                                           Margin="0,0,0,3"/>
+
+                                <TextBlock Grid.Row="1" Grid.Column="0"
+                                           Text="UUID" Opacity="0.50" Margin="0,0,0,3"/>
+                                <TextBlock Grid.Row="1" Grid.Column="1"
+                                           Text="{Binding ProfileId}"
+                                           TextTrimming="CharacterEllipsis"
+                                           ToolTip="{Binding ProfileId}"
+                                           Margin="0,0,0,3"/>
+
+                                <TextBlock Grid.Row="2" Grid.Column="0"
+                                           Text="Skin" Opacity="0.50"/>
+                                <TextBlock Grid.Row="2" Grid.Column="1"
+                                           Text="{Binding CurrentSkinUrl}"
+                                           TextTrimming="CharacterEllipsis"
+                                           ToolTip="{Binding CurrentSkinUrl}"/>
+                            </Grid>
+
+                            <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                                <Button Content="Refresh"
+                                        Command="{Binding RefreshProfileCommand}"
+                                        Style="{StaticResource MaterialDesignOutlinedButton}"
+                                        Height="30" Padding="14,0" FontSize="12"/>
+                                <Button Content="Fetch skin"
+                                        Command="{Binding FetchPlayerSkinCommand}"
+                                        Style="{StaticResource MaterialDesignOutlinedButton}"
+                                        Height="30" Padding="14,0" FontSize="12"
+                                        Margin="8,0,0,0"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- ── Find player skin ── -->
+                    <Border Padding="16"
+                            CornerRadius="12"
+                            Background="{DynamicResource MaterialDesignPaper}"
+                            BorderBrush="{DynamicResource MaterialDesignDivider}"
+                            BorderThickness="1"
+                            Margin="0,0,0,12">
+                        <StackPanel>
+                            <TextBlock Text="Find player skin"
+                                       FontSize="15"
+                                       FontWeight="SemiBold"
+                                       Margin="0,0,0,10"/>
+
+                            <TextBox md:HintAssist.Hint="Player name"
+                                     md:TextFieldAssist.HasClearButton="True"
+                                     Text="{Binding OtherPlayerName, UpdateSourceTrigger=PropertyChanged}"/>
+
+                            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                <Button Command="{Binding PreviewOtherPlayerSkinCommand}"
+                                        Height="30" Padding="14,0" FontSize="12">
+                                    <StackPanel Orientation="Horizontal">
+                                        <md:PackIcon Kind="Eye" Width="15" Height="15" Margin="0,0,5,0"/>
+                                        <TextBlock Text="Preview"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Content="Save PNG"
+                                        Command="{Binding DownloadOtherPlayerSkinCommand}"
+                                        Style="{StaticResource MaterialDesignOutlinedButton}"
+                                        Height="30" Padding="14,0" FontSize="12"
+                                        Margin="8,0,0,0"/>
+                            </StackPanel>
+
+                            <!-- resolved info -->
+                            <Grid Margin="0,10,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="50"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0" Grid.Column="0"
+                                           Text="Name" FontSize="12" Opacity="0.42"
+                                           Margin="0,0,0,2"/>
+                                <TextBlock Grid.Row="0" Grid.Column="1"
+                                           Text="{Binding OtherPlayerResolvedName}"
+                                           FontSize="12" Opacity="0.68"
+                                           Margin="0,0,0,2"/>
+
+                                <TextBlock Grid.Row="1" Grid.Column="0"
+                                           Text="UUID" FontSize="12" Opacity="0.42"
+                                           Margin="0,0,0,2"/>
+                                <TextBlock Grid.Row="1" Grid.Column="1"
+                                           Text="{Binding OtherPlayerResolvedId}"
+                                           FontSize="12" Opacity="0.68"
+                                           TextTrimming="CharacterEllipsis"
+                                           ToolTip="{Binding OtherPlayerResolvedId}"
+                                           Margin="0,0,0,2"/>
+
+                                <TextBlock Grid.Row="2" Grid.Column="0"
+                                           Text="Skin" FontSize="12" Opacity="0.42"/>
+                                <TextBlock Grid.Row="2" Grid.Column="1"
+                                           Text="{Binding OtherPlayerSkinUrl}"
+                                           FontSize="12" Opacity="0.68"
+                                           TextTrimming="CharacterEllipsis"
+                                           ToolTip="{Binding OtherPlayerSkinUrl}"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- ── Apply skin ── -->
+                    <Border Padding="16"
+                            CornerRadius="12"
+                            Background="{DynamicResource MaterialDesignPaper}"
+                            BorderBrush="{DynamicResource MaterialDesignDivider}"
+                            BorderThickness="1"
+                            Margin="0,0,0,12">
+                        <StackPanel>
+                            <TextBlock Text="Apply skin"
+                                       FontSize="15"
+                                       FontWeight="SemiBold"
+                                       Margin="0,0,0,4"/>
+                            <TextBlock Text="Upload to your account from a local file or URL."
+                                       FontSize="12"
+                                       Opacity="0.55"
+                                       Margin="0,0,0,12"/>
+
+                            <ComboBox md:HintAssist.Hint="Skin variant"
+                                      ItemsSource="{Binding AvailableVariants}"
+                                      SelectedItem="{Binding SelectedVariant}"
+                                      Margin="0,0,0,14"/>
+
+                            <Separator Opacity="0.25" Margin="0,0,0,12"/>
+
+                            <!-- from file -->
+                            <TextBlock Text="From file"
+                                       FontSize="12" FontWeight="Medium" Opacity="0.58"
+                                       Margin="0,0,0,8"/>
+
+                            <TextBox md:HintAssist.Hint="Path to skin PNG"
+                                     Text="{Binding LocalSkinPath, UpdateSourceTrigger=PropertyChanged}"
+                                     Margin="0,0,0,8"/>
+
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
+                                <Button Content="Browse"
+                                        Command="{Binding BrowseSkinCommand}"
+                                        Style="{StaticResource MaterialDesignOutlinedButton}"
+                                        Height="30" Padding="14,0" FontSize="12"/>
+                                <Button Content="Upload"
+                                        Command="{Binding ApplyFileSkinCommand}"
+                                        Height="30" Padding="14,0" FontSize="12"
+                                        Margin="8,0,0,0"/>
+                            </StackPanel>
+
+                            <Separator Opacity="0.25" Margin="0,0,0,12"/>
+
+                            <!-- from URL -->
+                            <TextBlock Text="From URL"
+                                       FontSize="12" FontWeight="Medium" Opacity="0.58"
+                                       Margin="0,0,0,8"/>
+
+                            <TextBox md:HintAssist.Hint="Direct PNG URL"
+                                     Text="{Binding RemoteSkinUrl, UpdateSourceTrigger=PropertyChanged}"
+                                     Margin="0,0,0,8"/>
+
+                            <Button Content="Apply URL"
+                                    Command="{Binding ApplyUrlSkinCommand}"
+                                    Height="30" Padding="14,0" FontSize="12"
+                                    HorizontalAlignment="Left"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- ── Scene ── -->
+                    <Border Padding="16"
+                            CornerRadius="12"
+                            Background="{DynamicResource MaterialDesignPaper}"
+                            BorderBrush="{DynamicResource MaterialDesignDivider}"
+                            BorderThickness="1"
+                            Margin="0,0,0,4">
+                        <StackPanel>
+                            <TextBlock Text="Scene"
+                                       FontSize="15"
+                                       FontWeight="SemiBold"
+                                       Margin="0,0,0,10"/>
+
+                            <Grid Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="8"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="8"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <ComboBox Grid.Column="0"
+                                          md:HintAssist.Hint="Animation"
+                                          ItemsSource="{Binding AvailableAnimationModes}"
+                                          SelectedItem="{Binding SelectedAnimationMode}"/>
+
+                                <ComboBox Grid.Column="2"
+                                          md:HintAssist.Hint="Background"
+                                          ItemsSource="{Binding AvailableBackgroundModes}"
+                                          SelectedItem="{Binding SelectedBackgroundMode}"/>
+
+                                <ComboBox Grid.Column="4"
+                                          md:HintAssist.Hint="Panorama"
+                                          ItemsSource="{Binding AvailablePanoramaPresets}"
+                                          SelectedItem="{Binding SelectedPanoramaPreset}"
+                                          DisplayMemberPath="DisplayName"/>
+                            </Grid>
+
+                            <StackPanel Orientation="Horizontal" Margin="-6,2,0,0">
+                                <Button Content="Clear panorama"
+                                        Command="{Binding ClearPanoramaCommand}"
+                                        Style="{StaticResource MaterialDesignFlatButton}"
+                                        Height="28" Padding="8,0" FontSize="12"/>
+                                <Button Content="Reset camera"
+                                        Click="ResetCameraButton_OnClick"
+                                        Style="{StaticResource MaterialDesignFlatButton}"
+                                        Height="28" Padding="8,0" FontSize="12"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Status — pinned outside the scroll, always visible -->
+            <StackPanel Grid.Row="1" Margin="0,10,4,0">
+                <ProgressBar Height="2"
+                             IsIndeterminate="{Binding IsBusy}"
+                             Margin="0,0,0,6"/>
+                <TextBlock Text="{Binding StatusMessage}"
+                           FontSize="12"
+                           Opacity="0.55"
+                           TextWrapping="Wrap"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- ─── Right: preview ─── -->
+        <Grid Grid.Column="2">
+            <Border CornerRadius="16"
+                    ClipToBounds="True"
+                    BorderBrush="{DynamicResource MaterialDesignDivider}"
+                    BorderThickness="1"
+                    Background="{DynamicResource MaterialDesignPaper}">
+                <controls:MinecraftSkinPreviewControl
+                    x:Name="SkinPreview"
+                    SkinBytes="{Binding PreviewSkinPng}"
+                    SkinVariant="{Binding SelectedVariant}"
+                    AnimationMode="{Binding SelectedAnimationMode}"
+                    BackgroundMode="{Binding SelectedBackgroundMode}"
+                    PanoramaSourcePath="{Binding PanoramaSourcePath}"/>
+            </Border>
+
+            <TextBlock Text="Left-click orbit  ·  Right-click pan  ·  Scroll to zoom"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Bottom"
+                       Margin="0,0,0,14"
+                       FontSize="11"
+                       Opacity="0.35"
+                       IsHitTestVisible="False"/>
+        </Grid>
+    </Grid>
+</UserControl>

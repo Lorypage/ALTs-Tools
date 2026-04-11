@@ -1,0 +1,43 @@
+<UserControl x:Class="RefreshToAccess2.Views.TokenInjectorView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes">
+
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Heading -->
+        <TextBlock Grid.Row="0"
+                   Text="Token Injector"
+                   Style="{StaticResource MaterialDesignHeadline5TextBlock}"
+                   Margin="0,0,0,20"/>
+
+        <!-- Injector host panel – your existing MinecraftProcSelector
+             content can be embedded here as a UserControl, or you can
+             open the dialog from the button below exactly as before.    -->
+        <StackPanel Grid.Row="1"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Left">
+
+            <TextBlock TextWrapping="Wrap"
+                       MaxWidth="560"
+                       Margin="0,0,0,24"
+                       Style="{StaticResource MaterialDesignBody1TextBlock}"
+                       Text="Select a running Minecraft process and inject the current access token into it. Make sure you have converted a valid token before injecting."/>
+
+            <Button Content="Open Process Selector"
+                    Width="220" Height="44"
+                    md:ButtonAssist.CornerRadius="8"
+                    Click="OnOpenProcSelector"/>
+
+            <!-- Status feedback -->
+            <TextBlock x:Name="InjectorStatus"
+                       Margin="0,16,0,0"
+                       Style="{StaticResource MaterialDesignBody2TextBlock}"
+                       Opacity="0"/>
+        </StackPanel>
+    </Grid>
+</UserControl>
