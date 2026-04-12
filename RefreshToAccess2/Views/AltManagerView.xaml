@@ -1,7 +1,8 @@
 <UserControl x:Class="RefreshToAccess2.Views.AltManagerView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes" xmlns:helpers="clr-namespace:RefreshToAccess2.Helpers"
+             xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:helpers="clr-namespace:RefreshToAccess2.Helpers"
              UseLayoutRounding="True"
              SnapsToDevicePixels="True"
              TextOptions.TextFormattingMode="Display"
@@ -9,33 +10,31 @@
              Focusable="True">
 
     <UserControl.Resources>
-        <helpers:InvertBoolConverter x:Key="InvertBool"/>
         <BooleanToVisibilityConverter x:Key="BoolVis"/>
+        <helpers:InvertBoolConverter x:Key="InvertBool"/>
 
         <!-- ═══════════════════════════════════════════════════
-             CARD TEMPLATE — rounded-corner-clipped ripple + hover
+             CARD TEMPLATE — Geometry clip, no OpacityMask
              ═══════════════════════════════════════════════════ -->
         <DataTemplate x:Key="CardTpl">
             <Grid Margin="6" Width="258" Cursor="Hand"
                   MouseLeftButtonUp="OnCardClick">
 
-                <!-- Background shape — also the OpacityMask source for clipping -->
-                <Border x:Name="CardBase" CornerRadius="16"
-                        Background="{DynamicResource MaterialDesign.Brush.Card.Background}"
-                        UseLayoutRounding="True" SnapsToDevicePixels="True"/>
+                <!-- Clipped inner container: ripple + hover stay inside rounded corners.
+                     CornerRadiusClip uses a frozen RectangleGeometry — zero bitmap overhead. -->
+                <Grid helpers:CornerRadiusClip.Radius="16">
 
-                <!-- Ripple + content: clipped to rounded corners via OpacityMask -->
-                <Grid>
-                    <Grid.OpacityMask>
-                        <VisualBrush Visual="{Binding ElementName=CardBase}"/>
-                    </Grid.OpacityMask>
+                    <!-- Background fill -->
+                    <Border CornerRadius="16"
+                            Background="{DynamicResource MaterialDesign.Brush.Card.Background}"/>
 
+                    <!-- Ripple (clipped to rounded rect by parent Grid.Clip) -->
                     <md:Ripple Feedback="{DynamicResource MaterialDesign.Brush.Primary.Light}"
                                HorizontalContentAlignment="Stretch"
                                VerticalContentAlignment="Stretch"
                                Focusable="False">
                         <Grid>
-                            <!-- Card content -->
+                            <!-- Content -->
                             <Grid Margin="20,16">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
@@ -74,7 +73,7 @@
                                 </StackPanel>
                             </Grid>
 
-                            <!-- Hover darkening overlay -->
+                            <!-- Hover overlay (animated) -->
                             <Border x:Name="HoverOverlay"
                                     Background="#000000" Opacity="0"
                                     IsHitTestVisible="False"/>
@@ -82,7 +81,7 @@
                     </md:Ripple>
                 </Grid>
 
-                <!-- Border outline (on top, unclipped) -->
+                <!-- Border outline (outside clip, drawn on top) -->
                 <Border CornerRadius="16" BorderThickness="1" IsHitTestVisible="False"
                         BorderBrush="{DynamicResource MaterialDesignDivider}"/>
 
@@ -134,29 +133,23 @@
         </DataTemplate>
 
         <!-- ═══════════════════════════════════════════════════
-             LIST TEMPLATE — rounded-corner-clipped ripple + hover
+             LIST TEMPLATE — Geometry clip, no OpacityMask
              ═══════════════════════════════════════════════════ -->
         <DataTemplate x:Key="ListTpl">
             <Grid Cursor="Hand" MouseLeftButtonUp="OnCardClick"
                   Margin="0,1">
 
-                <!-- Background shape — OpacityMask source -->
-                <Border x:Name="ListBase" CornerRadius="12"
-                        Background="{DynamicResource MaterialDesign.Brush.Card.Background}"
-                        UseLayoutRounding="True" SnapsToDevicePixels="True"/>
+                <!-- Clipped inner container -->
+                <Grid helpers:CornerRadiusClip.Radius="12">
 
-                <!-- Ripple + content: clipped to rounded corners -->
-                <Grid>
-                    <Grid.OpacityMask>
-                        <VisualBrush Visual="{Binding ElementName=ListBase}"/>
-                    </Grid.OpacityMask>
+                    <Border CornerRadius="12"
+                            Background="{DynamicResource MaterialDesign.Brush.Card.Background}"/>
 
                     <md:Ripple Feedback="{DynamicResource MaterialDesign.Brush.Primary.Light}"
                                HorizontalContentAlignment="Stretch"
                                VerticalContentAlignment="Stretch"
                                Focusable="False">
                         <Grid>
-                            <!-- Row content -->
                             <Grid Margin="16,10">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
@@ -194,7 +187,7 @@
                                              Visibility="{Binding IsSelected, Converter={StaticResource BoolVis}}"/>
                             </Grid>
 
-                            <!-- Hover darkening overlay -->
+                            <!-- Hover overlay -->
                             <Border x:Name="ListHover"
                                     Background="#000000" Opacity="0"
                                     IsHitTestVisible="False"/>
@@ -241,13 +234,12 @@
     <Grid x:Name="RootGrid" ClipToBounds="True">
 
         <!-- ▂▂▂  LAYER 1 : Main content ▂▂▂ -->
-        <Grid x:Name="MainContentGrid"
-              UseLayoutRounding="True" SnapsToDevicePixels="True">
+        <Grid x:Name="MainContentGrid">
 
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>   <!-- Header -->
-                <RowDefinition Height="Auto"/>   <!-- Progress bar -->
-                <RowDefinition Height="*"/>      <!-- Content -->
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
             <!-- ── Header bar ── -->
@@ -295,31 +287,28 @@
                                       Width="40" Height="40" Margin="4,0"
                                       IsChecked="{Binding IsCardView, Converter={StaticResource InvertBool}}"
                                       ToolTip="Toggle card / list">
-                            <md:PackIcon Kind="ListBox" Width="21" Height="21"/>
+                            <md:PackIcon Kind="FormatListBulleted" Width="21" Height="21"/>
                             <md:ToggleButtonAssist.OnContent>
                                 <md:PackIcon Kind="FormatListBulleted" Width="21" Height="21"/>
                             </md:ToggleButtonAssist.OnContent>
                         </ToggleButton>
-
                         <ToggleButton Style="{StaticResource MaterialDesignFlatPrimaryToggleButton}"
                                       Width="40" Height="40" Margin="4,0"
                                       IsChecked="{Binding IsSelectionMode}"
                                       ToolTip="Toggle selection mode">
-                            <md:PackIcon Kind="CheckboxMultipleBlankOutline" Width="21" Height="21"/>
+                            <md:PackIcon Kind="TickBoxMultipleOutline" Width="21" Height="21"/>
                             <md:ToggleButtonAssist.OnContent>
-                                <md:PackIcon Kind="CheckboxMultipleMarked" Width="21" Height="21"/>
+                                <md:PackIcon Kind="TickBoxMultipleOutline" Width="21" Height="21"/>
                             </md:ToggleButtonAssist.OnContent>
                         </ToggleButton>
                     </StackPanel>
                 </Grid>
             </Border>
 
-            <!-- ── Search progress bar ── -->
+            <!-- ── Search progress ── -->
             <Grid Grid.Row="1" Height="4" Margin="24,0">
-                <!-- Always present for layout but visibility toggles -->
                 <ProgressBar x:Name="SearchProgress"
-                             IsIndeterminate="True"
-                             Height="4"
+                             IsIndeterminate="True" Height="4"
                              VerticalAlignment="Top"
                              Style="{StaticResource MaterialDesignLinearProgressBar}"
                              Foreground="{DynamicResource MaterialDesign.Brush.Primary}"
@@ -327,16 +316,18 @@
                              Opacity="0"/>
             </Grid>
 
-            <!-- ── Scrollable content ── -->
+            <!-- ── Content ── -->
             <Grid Grid.Row="2" Margin="16,0,16,0">
 
-                <!-- Card view -->
+                <!-- Card view — deferred scrolling for large sets -->
                 <ScrollViewer VerticalScrollBarVisibility="Auto"
                               HorizontalScrollBarVisibility="Disabled"
-                              Padding="4,0,4,80"
+                              IsDeferredScrollingEnabled="True"
+                              Padding="4,0"
                               Visibility="{Binding IsCardView, Converter={StaticResource BoolVis}}">
                     <ItemsControl ItemsSource="{Binding DisplayItems}"
-                                  ItemTemplate="{StaticResource CardTpl}">
+                                  ItemTemplate="{StaticResource CardTpl}"
+                                  Margin="0,0,0,90">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <WrapPanel Orientation="Horizontal"/>
@@ -344,13 +335,14 @@
                         </ItemsControl.ItemsPanel>
                     </ItemsControl>
                 </ScrollViewer>
-
-                <!-- List view -->
+                <!-- List view — fully virtualised -->
                 <ItemsControl ItemsSource="{Binding DisplayItems}"
                               ItemTemplate="{StaticResource ListTpl}"
                               VirtualizingPanel.IsVirtualizing="True"
                               VirtualizingPanel.VirtualizationMode="Recycling"
                               VirtualizingPanel.ScrollUnit="Pixel"
+                              VirtualizingPanel.CacheLength="2,2"
+                              VirtualizingPanel.CacheLengthUnit="Page"
                               ScrollViewer.CanContentScroll="True"
                               Visibility="{Binding IsListView, Converter={StaticResource BoolVis}}">
                     <ItemsControl.Template>
@@ -358,12 +350,11 @@
                             <ScrollViewer VerticalScrollBarVisibility="Auto"
                                           HorizontalScrollBarVisibility="Disabled"
                                           CanContentScroll="True" Focusable="False"
-                                          Padding="4,0,4,80">
-                                <ItemsPresenter/>
+                                          Padding="4,0">
+                                <ItemsPresenter Margin="0,0,0,90"/>
                             </ScrollViewer>
                         </ControlTemplate>
-                    </ItemsControl.Template>
-                    <ItemsControl.ItemsPanel>
+                    </ItemsControl.Template>                    <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
                             <VirtualizingStackPanel/>
                         </ItemsPanelTemplate>
@@ -500,7 +491,7 @@
                     <DropShadowEffect ShadowDepth="2" BlurRadius="28" Opacity="0.24"/>
                 </Border.Effect>
                 <Border.RenderTransform>
-                    <ScaleTransform x:Name="CardScale" ScaleX="0.93" ScaleY="0.93"/>
+                    <ScaleTransform x:Name="CardScale" ScaleX="0.92" ScaleY="0.92"/>
                 </Border.RenderTransform>
 
                 <Grid Margin="30,24">
@@ -519,7 +510,6 @@
                         <md:PackIcon Kind="Close" Width="20" Height="20"/>
                     </Button>
 
-                    <!-- Header: avatar + IGN + date + client -->
                     <StackPanel Grid.Row="0" HorizontalAlignment="Center">
                         <Border Width="56" Height="56" CornerRadius="28"
                                 HorizontalAlignment="Center"
@@ -543,12 +533,10 @@
                         </TextBlock>
                     </StackPanel>
 
-                    <!-- Fields (no more Client ID card) -->
                     <ScrollViewer Grid.Row="2"
                                   VerticalScrollBarVisibility="Auto"
                                   HorizontalScrollBarVisibility="Disabled">
                         <StackPanel>
-                            <!-- UUID -->
                             <Border CornerRadius="12" Padding="14,10" Margin="0,0,0,6"
                                     Background="{DynamicResource MaterialDesign.Brush.Background}">
                                 <Grid>
@@ -571,7 +559,6 @@
                                 </Grid>
                             </Border>
 
-                            <!-- Refresh Token -->
                             <Border CornerRadius="12" Padding="14,10" Margin="0,0,0,6"
                                     Background="{DynamicResource MaterialDesign.Brush.Background}">
                                 <Grid>
@@ -595,7 +582,6 @@
                                 </Grid>
                             </Border>
 
-                            <!-- Access Token -->
                             <Border CornerRadius="12" Padding="14,10" Margin="0,0,0,6"
                                     Background="{DynamicResource MaterialDesign.Brush.Background}">
                                 <Grid>
@@ -621,7 +607,6 @@
                         </StackPanel>
                     </ScrollViewer>
 
-                    <!-- Bottom actions -->
                     <StackPanel Grid.Row="4" Orientation="Horizontal"
                                 HorizontalAlignment="Center">
                         <Button Style="{StaticResource MaterialDesignRaisedButton}"
