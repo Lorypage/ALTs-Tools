@@ -240,7 +240,10 @@ namespace RefreshToAccess2
             try { } catch { }
             System.Diagnostics.Process.GetCurrentProcess().Kill();
         }
-
+        private void OnSourceInitialized(object? sender, EventArgs e)
+        {
+            Helpers.TitleBarHelper.Apply(this);
+        }
         private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }

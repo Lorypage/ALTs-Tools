@@ -10,10 +10,12 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
         Style="{StaticResource MaterialDesignWindow}"
+        Background="{DynamicResource MaterialDesign.Brush.Background}"
         Title="Token Tools For Minecraft 2.1"
-        Height="680" Width="1100"
+        Height="680" Width="1235"
         MinHeight="600" MinWidth="860"
         WindowStartupLocation="CenterScreen"
+        SourceInitialized="OnSourceInitialized"
         Closing="OnWindowClosing">
 
     <Window.Resources>

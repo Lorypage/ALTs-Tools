@@ -1,249 +1,422 @@
+using MaterialDesignThemes.Wpf;
 using Microsoft.Win32;
-using Newtonsoft.Json;
 using RefreshToAccess2.Models;
 using RefreshToAccess2.Services;
 using RefreshToAccess2.ViewModels;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Animation;
+using System.Windows.Media.Effects;
 
 namespace RefreshToAccess2.Views
 {
-    public partial class AltManagerView : System.Windows.Controls.UserControl
+    public partial class AltManagerView : UserControl
     {
-        private AltManagerViewModel VM =>
-            (AltManagerViewModel)DataContext;
+        private AltManagerViewModel? VM => DataContext as AltManagerViewModel;
+        private MainViewModel? RootVM => Window.GetWindow(this)?.DataContext as MainViewModel;
 
-        private MainViewModel RootVM =>
-            (MainViewModel)Window.GetWindow(this)!.DataContext;
+        private readonly SnackbarMessageQueue _snack = new(TimeSpan.FromSeconds(2));
+        private bool _barShown, _delShown;
+        private BlurEffect? _blur;
+
+        // Shared easing — always EaseOut for both open and close
+        private static readonly CubicEase _easeOut = new() { EasingMode = EasingMode.EaseOut };
+
+        // Background blur target radius
+        private const double BlurRadius = 24;
 
         public AltManagerView()
         {
             InitializeComponent();
+            Snackbar.MessageQueue = _snack;
+            DataContextChanged += OnDCChanged;
         }
 
-        // ── Copy helpers ───────────────────────────────────────────────
+        // ── ViewModel wiring ───────────────────────────────────────
 
-        private void OnCopyName(object sender, RoutedEventArgs e)
-            => CopyField(p => p.IGN);
-
-        private void OnCopyAccToken(object sender, RoutedEventArgs e)
-            => CopyField(p => p.AccToken);
-
-        private void OnCopyRefToken(object sender, RoutedEventArgs e)
-            => CopyField(p => p.RefToken);
-
-        private void OnCopyUuid(object sender, RoutedEventArgs e)
-            => CopyField(p => p.UUID);
-
-        private void CopyField(Func<ProfileData, string?> selector)
+        private void OnDCChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
-            var block = VM.GetSelected();
-            if (block?.profileData is null)
-            {
-                MessageBox.Show(
-                    "Please select an account first.",
-                    "Nothing selected",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information);
-                return;
-            }
+            if (e.OldValue is AltManagerViewModel old)
+                old.PropertyChanged -= OnVMProp;
+            if (e.NewValue is AltManagerViewModel vm)
+                vm.PropertyChanged += OnVMProp;
+        }
 
-            string? value = selector(block.profileData);
-            if (string.IsNullOrEmpty(value))
+        private void OnVMProp(object? s, PropertyChangedEventArgs e)
+        {
+            switch (e.PropertyName)
             {
-                MessageBox.Show(
-                    "The selected field is empty.",
-                    "Empty field",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information);
-                return;
-            }
-
-            try { Clipboard.SetText(value); }
-            catch (Exception ex)
-            {
-                MessageBox.Show(
-                    $"Failed to copy to clipboard:\n{ex.Message}",
-                    "Clipboard error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning);
+                case nameof(AltManagerViewModel.IsSelectionMode):
+                    AnimateBar(VM!.IsSelectionMode);
+                    break;
+                case nameof(AltManagerViewModel.HasSelection):
+                    AnimateDelBtn(VM!.HasSelection);
+                    break;
+                case nameof(AltManagerViewModel.IsSearching):
+                    AnimateSearchBar(VM!.IsSearching);
+                    break;
             }
         }
 
-        // ── Refresh selected token ─────────────────────────────────────
+        // ══════════════════════════════════════════════════════════
+        //   SEARCH PROGRESS BAR ANIMATION
+        // ══════════════════════════════════════════════════════════
 
-        private async void OnRefreshToken(object sender, RoutedEventArgs e)
+        private void AnimateSearchBar(bool show)
         {
-            var block = VM.GetSelected();
-            if (block?.profileData is null)
+            if (show)
             {
-                MessageBox.Show(
-                    "Please select an account first.",
-                    "Nothing selected",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information);
-                return;
+                SearchProgress.Visibility = Visibility.Visible;
+                SearchProgress.BeginAnimation(OpacityProperty,
+                    new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(200))
+                    { EasingFunction = _easeOut });
             }
+            else
+            {
+                var fadeOut = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(350))
+                { EasingFunction = _easeOut };
+                fadeOut.Completed += (_, __) =>
+                {
+                    SearchProgress.BeginAnimation(OpacityProperty, null);
+                    SearchProgress.Opacity = 0;
+                    // Only collapse if still not searching
+                    if (VM is null || !VM.IsSearching)
+                        SearchProgress.Visibility = Visibility.Collapsed;
+                };
+                SearchProgress.BeginAnimation(OpacityProperty, fadeOut);
+            }
+        }
 
-            if (string.IsNullOrEmpty(block.profileData.RefToken))
+        // ══════════════════════════════════════════════════════════
+        //   CARD / LIST CLICK
+        // ══════════════════════════════════════════════════════════
+
+        private void OnCardClick(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is not FrameworkElement fe ||
+                fe.DataContext is not ProfileCardItem item) return;
+            if (VM is null) return;
+
+            if (VM.IsSelectionMode)
+                item.IsSelected = !item.IsSelected;
+            else
+                OpenDetail(item);
+        }
+
+        // ══════════════════════════════════════════════════════════
+        //   DETAIL OVERLAY — OPEN
+        // ══════════════════════════════════════════════════════════
+
+        private void OpenDetail(ProfileCardItem item)
+        {
+            if (VM is null) return;
+            VM.DetailItem = item;
+            VM.IsDetailOpen = true;
+
+            ClearDetailAnims();
+
+            // Reset to starting state
+            DetailCard.Opacity = 0;
+            CardScale.ScaleX = 0.92;
+            CardScale.ScaleY = 0.92;
+            DimBg.Opacity = 0;
+
+            // Create blur dynamically — not present when overlay closed
+            _blur = new BlurEffect { Radius = 0, RenderingBias = RenderingBias.Performance };
+            MainContentGrid.Effect = _blur;
+
+            DetailOverlay.Visibility = Visibility.Visible;
+            DetailOverlay.Focus();
+
+            var openDur = TimeSpan.FromMilliseconds(400);
+
+            // Blur background heavily
+            _blur.BeginAnimation(BlurEffect.RadiusProperty,
+                new DoubleAnimation(0, BlurRadius, openDur) { EasingFunction = _easeOut });
+
+            // Dim background
+            DimBg.BeginAnimation(OpacityProperty,
+                new DoubleAnimation(0, 1, openDur) { EasingFunction = _easeOut });
+
+            // Card scale up
+            CardScale.BeginAnimation(ScaleTransform.ScaleXProperty,
+                new DoubleAnimation(0.92, 1, openDur) { EasingFunction = _easeOut });
+            CardScale.BeginAnimation(ScaleTransform.ScaleYProperty,
+                new DoubleAnimation(0.92, 1, openDur) { EasingFunction = _easeOut });
+
+            // Card fade in
+            DetailCard.BeginAnimation(OpacityProperty,
+                new DoubleAnimation(0, 1, openDur) { EasingFunction = _easeOut });
+        }
+
+        // ══════════════════════════════════════════════════════════
+        //   DETAIL OVERLAY — CLOSE  (also EaseOut, not reversed)
+        // ══════════════════════════════════════════════════════════
+
+        private void CloseDetail()
+        {
+            var closeDur = TimeSpan.FromMilliseconds(320);
+
+            // Blur fades out smoothly (EaseOut = starts fast, slows to 0)
+            _blur?.BeginAnimation(BlurEffect.RadiusProperty,
+                new DoubleAnimation(0, closeDur) { EasingFunction = _easeOut });
+
+            // Dim fades out
+            DimBg.BeginAnimation(OpacityProperty,
+                new DoubleAnimation(0, closeDur) { EasingFunction = _easeOut });
+
+            // Card scales down slightly (EaseOut = snappy start, gentle land)
+            CardScale.BeginAnimation(ScaleTransform.ScaleXProperty,
+                new DoubleAnimation(0.94, closeDur) { EasingFunction = _easeOut });
+            CardScale.BeginAnimation(ScaleTransform.ScaleYProperty,
+                new DoubleAnimation(0.94, closeDur) { EasingFunction = _easeOut });
+
+            // Card fades out, then clean up
+            var fadeOut = new DoubleAnimation(0, closeDur) { EasingFunction = _easeOut };
+            fadeOut.Completed += OnCloseCompleted;
+            DetailCard.BeginAnimation(OpacityProperty, fadeOut);
+        }
+
+        private void OnCloseCompleted(object? s, EventArgs e)
+        {
+            ClearDetailAnims();
+
+            DetailOverlay.Visibility = Visibility.Collapsed;
+
+            // Remove blur entirely — no bitmap render cost when closed
+            MainContentGrid.Effect = null;
+            _blur = null;
+
+            // Reset to initial state for next open
+            DetailCard.Opacity = 0;
+            CardScale.ScaleX = 0.92;
+            CardScale.ScaleY = 0.92;
+            DimBg.Opacity = 0;
+
+            if (VM is not null)
             {
-                MessageBox.Show(
-                    "The selected account has no refresh token stored.",
-                    "No refresh token",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning);
-                return;
+                VM.IsDetailOpen = false;
+                VM.DetailItem = null;
             }
+        }
+
+        private void ClearDetailAnims()
+        {
+            // Release all held animations to avoid stale values
+            DetailCard.BeginAnimation(OpacityProperty, null);
+            CardScale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
+            CardScale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+            DimBg.BeginAnimation(OpacityProperty, null);
+            _blur?.BeginAnimation(BlurEffect.RadiusProperty, null);
+        }
+
+        private void OnDimClick(object s, MouseButtonEventArgs e) => CloseDetail();
+        private void OnCloseDetail(object s, RoutedEventArgs e) => CloseDetail();
+        private void OnOverlayKey(object s, KeyEventArgs e)
+        {
+            if (e.Key == Key.Escape) { CloseDetail(); e.Handled = true; }
+        }
+
+        // ══════════════════════════════════════════════════════════
+        //   SELECTION BAR / DELETE BUTTON ANIMATIONS
+        // ══════════════════════════════════════════════════════════
+
+        private void AnimateBar(bool show)
+        {
+            if (show == _barShown) return;
+            _barShown = show;
+
+            BarSlide.BeginAnimation(TranslateTransform.YProperty,
+                new DoubleAnimation(show ? 0 : 120,
+                    TimeSpan.FromMilliseconds(show ? 400 : 280))
+                { EasingFunction = _easeOut });
+
+            if (!show) AnimateDelBtn(false);
+        }
+
+        private void AnimateDelBtn(bool show)
+        {
+            if (show == _delShown) return;
+            _delShown = show;
+
+            IEasingFunction ease = show
+                ? new BackEase { EasingMode = EasingMode.EaseOut, Amplitude = 0.35 }
+                : _easeOut;
+            var dur = TimeSpan.FromMilliseconds(show ? 320 : 200);
+            double t = show ? 1 : 0;
+
+            DelBtnScale.BeginAnimation(ScaleTransform.ScaleXProperty,
+                new DoubleAnimation(t, dur) { EasingFunction = ease });
+            DelBtnScale.BeginAnimation(ScaleTransform.ScaleYProperty,
+                new DoubleAnimation(t, dur) { EasingFunction = ease });
+
+            ExpSelScale.BeginAnimation(ScaleTransform.ScaleXProperty,
+                new DoubleAnimation(t, dur) { EasingFunction = ease });
+            ExpSelScale.BeginAnimation(ScaleTransform.ScaleYProperty,
+                new DoubleAnimation(t, dur) { EasingFunction = ease });
+        }
+
+        // ══════════════════════════════════════════════════════════
+        //   DETAIL ACTIONS
+        // ══════════════════════════════════════════════════════════
+
+        private void OnCopyField(object sender, RoutedEventArgs e)
+        {
+            if (sender is not Button btn || btn.Tag is not string f) return;
+            if (VM?.DetailItem is null) return;
+
+            string? v = f switch
+            {
+                "UUID" => VM.DetailItem.UUID,
+                "RefToken" => VM.DetailItem.RefToken,
+                "AccToken" => VM.DetailItem.AccToken,
+                _ => null
+            };
+            if (string.IsNullOrEmpty(v) || v == "N/A")
+            { _snack.Enqueue("Field is empty"); return; }
+            Copy(v, f);
+        }
+
+        private void OnCopyAll(object sender, RoutedEventArgs e)
+        {
+            if (VM?.DetailItem is null) return;
+            var d = VM.DetailItem;
+            Copy($"IGN: {d.IGN}\nUUID: {d.UUID}\nClient ID: {d.ClientId}\n" +
+                 $"Refresh Token: {d.RefToken}\nAccess Token: {d.AccToken}\n" +
+                 $"Login Date: {d.LoginDate}", "All fields");
+        }
+
+        private async void OnDetailRefresh(object sender, RoutedEventArgs e)
+        {
+            if (VM?.DetailItem is null || RootVM is null) return;
+            string rf = VM.DetailItem.RefToken;
+            string cid = VM.DetailItem.ClientId;
+            if (string.IsNullOrEmpty(rf) || rf == "N/A")
+            { _snack.Enqueue("No refresh token"); return; }
+
+            CloseDetail();
+            await Dispatcher.InvokeAsync(() => { },
+                System.Windows.Threading.DispatcherPriority.Render);
 
             var conv = RootVM.Converter;
-            conv.RefreshToken        = block.profileData.RefToken;
-            conv.SelectedClientIndex = ClientNameToIndex(block.profileData.ClientId);
+            conv.RefreshToken = rf;
+            conv.SelectedClientIndex = CidToIdx(cid);
 
-            // Navigate to Converter page (index 0)
-            var mainWindow = Window.GetWindow(this) as MainWindow;
-            if (mainWindow is not null)
+            if (Window.GetWindow(this) is MainWindow mw)
             {
                 RootVM.SelectedNavIndex = 0;
-                mainWindow.NavListBox.SelectedIndex = 0;
+                mw.NavListBoxControl.SelectedIndex = 0;
             }
-
-            var progress = new Progress<string>(msg => conv.StatusMessage = msg);
-            await conv.ConvertAsync(progress);
+            await conv.ConvertAsync(new Progress<string>(m => conv.StatusMessage = m));
         }
-        // ── Delete ─────────────────────────────────────────────────────
 
-        private void OnDeleteSelected(object sender, RoutedEventArgs e)
-            => VM.DeleteSelected();
+        // ══════════════════════════════════════════════════════════
+        //   SELECTION-MODE BUTTONS
+        // ══════════════════════════════════════════════════════════
 
-        private void OnDeleteAll(object sender, RoutedEventArgs e)
-            => VM.DeleteAll();
+        private void OnSelectAll(object s, RoutedEventArgs e) => VM?.SelectAll();
+        private void OnDeselectAll(object s, RoutedEventArgs e) => VM?.DeselectAll();
+        private void OnDeleteSelected(object s, RoutedEventArgs e) => VM?.DeleteSelected();
+        private void OnDeleteAll(object s, RoutedEventArgs e) => VM?.DeleteAll();
 
-        // ── Export ─────────────────────────────────────────────────────
+        // ══════════════════════════════════════════════════════════
+        //   EXPORT / IMPORT
+        // ══════════════════════════════════════════════════════════
 
-        private void OnExport(object sender, RoutedEventArgs e)
+        private void OnExportSelected(object s, RoutedEventArgs e)
+        {
+            if (VM is null) return;
+            var sel = VM.SelectedProfiles();
+            if (sel.Count == 0) { _snack.Enqueue("Nothing selected"); return; }
+            DoExport(sel, $"selected_{DateTime.Now:yyyyMMdd_HHmmss}.tapf");
+        }
+
+        private void OnExportAll(object s, RoutedEventArgs e)
+        {
+            if (VM is null) return;
+            var all = VM.AllProfiles();
+            if (all.Count == 0) { _snack.Enqueue("No accounts to export"); return; }
+            DoExport(all, $"alts_{DateTime.Now:yyyyMMdd_HHmmss}.tapf");
+        }
+
+        private void DoExport(List<ProfileDataBlock> list, string name)
         {
             var dlg = new SaveFileDialog
             {
-                Title      = "Export alt profiles",
-                DefaultExt = ".tapf",
-                Filter     = "Token Alt Profile Files (*.tapf)|*.tapf",
-                FileName   = $"alts_{DateTime.Now:yyyyMMdd_HHmmss}.tapf"
+                Title = "Export alt profiles", DefaultExt = ".tapf",
+                Filter = "Token Alt Profile Files (*.tapf)|*.tapf", FileName = name
             };
-
             if (dlg.ShowDialog() != true) return;
-
             try
             {
-                byte[] bytes = ProfileService.ExportToBytes(
-                    RootVM.TokenProfiles.ToList());
-
-                File.WriteAllBytes(dlg.FileName, bytes);
-
-                MessageBox.Show(
-                    $"Exported {RootVM.TokenProfiles.Count} profile(s) to:\n{dlg.FileName}",
-                    "Export complete",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information);
+                File.WriteAllBytes(dlg.FileName, ProfileService.ExportToBytes(list));
+                _snack.Enqueue($"✓ Exported {list.Count} profile(s)");
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
-                    $"Export failed:\n{ex.Message}",
-                    "Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                MessageBox.Show($"Export failed:\n{ex.Message}", "Error",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
-        // ── Import ─────────────────────────────────────────────────────
-
-        private void OnImport(object sender, RoutedEventArgs e)
+        private void OnImport(object s, RoutedEventArgs e)
         {
-            var dlg = new Microsoft.Win32.OpenFileDialog
+            if (VM is null || RootVM is null) return;
+            var dlg = new OpenFileDialog
             {
-                Title      = "Import alt profiles",
-                DefaultExt = ".tapf",
-                Filter     = "Token Alt Profile Files (*.tapf)|*.tapf"
+                Title = "Import alt profiles", DefaultExt = ".tapf",
+                Filter = "Token Alt Profile Files (*.tapf)|*.tapf"
             };
-
             if (dlg.ShowDialog() != true) return;
-
             try
             {
-                byte[] raw = File.ReadAllBytes(dlg.FileName);
-
-                List<ProfileDataBlock>? imported =
-                    ProfileService.ImportFromBytes(raw);
-
+                var imported = ProfileService.ImportFromBytes(File.ReadAllBytes(dlg.FileName));
                 if (imported is null || imported.Count == 0)
-                {
-                    MessageBox.Show(
-                        "The file contained no valid profile entries.",
-                        "Nothing imported",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Warning);
-                    return;
-                }
+                { _snack.Enqueue("File had no valid profiles"); return; }
 
-                MessageBoxResult choice = MessageBox.Show(
-                    $"Found {imported.Count} profile(s).\n\n" +
-                    "Click YES to merge with your existing alts.\n" +
-                    "Click NO to replace all existing alts.",
-                    "Import mode",
-                    MessageBoxButton.YesNoCancel,
-                    MessageBoxImage.Question);
-
+                var choice = MessageBox.Show(
+                    $"Found {imported.Count} profile(s).\n\nYES → Merge\nNO → Replace",
+                    "Import mode", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
                 if (choice == MessageBoxResult.Cancel) return;
+                if (choice == MessageBoxResult.No) RootVM.TokenProfiles.Clear();
 
-                if (choice == MessageBoxResult.No)
-                    RootVM.TokenProfiles.Clear();
+                foreach (var b in imported) RootVM.TokenProfiles.Add(b);
 
-                foreach (var block in imported)
-                    RootVM.TokenProfiles.Add(block);
-
-                // De-duplicate keeping the newest entry per IGN.
-                var deduped = ProfileService.RemoveDuplicates(
-                    RootVM.TokenProfiles.ToList());
-
+                var dd = ProfileService.RemoveDuplicates(RootVM.TokenProfiles.ToList());
                 RootVM.TokenProfiles.Clear();
-                foreach (var b in deduped)
-                    RootVM.TokenProfiles.Add(b);
+                foreach (var b in dd) RootVM.TokenProfiles.Add(b);
 
                 VM.Save();
-
-                MessageBox.Show(
-                    $"Successfully imported {imported.Count} profile(s).",
-                    "Import complete",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information);
+                _snack.Enqueue($"✓ Imported {imported.Count} profile(s)");
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
-                    $"Import failed – the file may be corrupt or in the wrong format.\n\n{ex.Message}",
-                    "Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                MessageBox.Show($"Import failed:\n{ex.Message}", "Error",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
-        // ── Helpers ────────────────────────────────────────────────────
+        // ── Helpers ────────────────────────────────────────────────
 
-        private static int ClientNameToIndex(string? name)
+        private void Copy(string val, string label)
         {
-            if (string.IsNullOrEmpty(name)) return 0;
+            try   { Clipboard.SetText(val); _snack.Enqueue($"✓ Copied {label}"); }
+            catch { _snack.Enqueue("Clipboard error"); }
+        }
 
+        private static int CidToIdx(string? n)
+        {
+            if (string.IsNullOrEmpty(n)) return 0;
             for (int i = 0; i < TokenConverterViewModel.ClientNames.Length; i++)
-            {
-                if (string.Equals(
-                        TokenConverterViewModel.ClientNames[i], name,
-                        StringComparison.OrdinalIgnoreCase))
-                    return i;
-            }
+                if (string.Equals(TokenConverterViewModel.ClientNames[i], n,
+                        StringComparison.OrdinalIgnoreCase)) return i;
             return 0;
         }
     }
