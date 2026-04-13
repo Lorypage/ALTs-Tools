@@ -1,5 +1,3 @@
-using System;
-
 namespace RefreshToAccess2.Models
 {
     public class ProfileData
@@ -13,7 +11,8 @@ namespace RefreshToAccess2.Models
 
     public class ProfileDataBlock
     {
-        public string?      loginDate   { get; set; }
-        public ProfileData? profileData { get; set; }
+        public string?      loginDate      { get; set; }
+        public ProfileData? profileData    { get; set; }
+        public string?      headSkinBase64 { get; set; }
     }
 }

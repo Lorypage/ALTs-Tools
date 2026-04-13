@@ -11,30 +11,62 @@
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolVis"/>
-        <helpers:InvertBoolConverter x:Key="InvertBool"/>
+        <helpers:InvertBoolConverter  x:Key="InvertBool"/>
 
         <!-- ═══════════════════════════════════════════════════
-             CARD TEMPLATE — Geometry clip, no OpacityMask
+             AVATAR TEMPLATES
+             ═══════════════════════════════════════════════════ -->
+        <DataTemplate x:Key="AvatarSmall">
+            <Grid Width="40" Height="40">
+                <Border CornerRadius="20"
+                        Background="{DynamicResource MaterialDesign.Brush.Primary.Light}">
+                    <TextBlock Text="{Binding Initial}" FontSize="18" FontWeight="Bold"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                               Foreground="{DynamicResource MaterialDesign.Brush.Primary.Light.Foreground}"/>
+                </Border>
+                <Border CornerRadius="20" helpers:CornerRadiusClip.Radius="20"
+                        Visibility="{Binding HasHeadImage, Converter={StaticResource BoolVis}}">
+                    <Image Source="{Binding HeadImage}" Stretch="UniformToFill"
+                           RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+                </Border>
+            </Grid>
+        </DataTemplate>
+
+        <DataTemplate x:Key="AvatarList">
+            <Grid Width="34" Height="34">
+                <Border CornerRadius="17"
+                        Background="{DynamicResource MaterialDesign.Brush.Primary.Light}">
+                    <TextBlock Text="{Binding Initial}" FontSize="14" FontWeight="Bold"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                               Foreground="{DynamicResource MaterialDesign.Brush.Primary.Light.Foreground}"/>
+                </Border>
+                <Border CornerRadius="17" helpers:CornerRadiusClip.Radius="17"
+                        Visibility="{Binding HasHeadImage, Converter={StaticResource BoolVis}}">
+                    <Image Source="{Binding HeadImage}" Stretch="UniformToFill"
+                           RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+                </Border>
+            </Grid>
+        </DataTemplate>
+
+        <!-- ═══════════════════════════════════════════════════
+             CARD TEMPLATE
              ═══════════════════════════════════════════════════ -->
         <DataTemplate x:Key="CardTpl">
-            <Grid Margin="6" Width="258" Cursor="Hand"
-                  MouseLeftButtonUp="OnCardClick">
+            <Grid Cursor="Hand"
+                  Margin="6"
+                  Width="{Binding DataContext.CardWidth,
+                          RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                  MouseLeftButtonUp="OnCardClick"
+                  helpers:EntranceAnimation.IsEnabled="True">
 
-                <!-- Clipped inner container: ripple + hover stay inside rounded corners.
-                     CornerRadiusClip uses a frozen RectangleGeometry — zero bitmap overhead. -->
                 <Grid helpers:CornerRadiusClip.Radius="16">
-
-                    <!-- Background fill -->
                     <Border CornerRadius="16"
                             Background="{DynamicResource MaterialDesign.Brush.Card.Background}"/>
-
-                    <!-- Ripple (clipped to rounded rect by parent Grid.Clip) -->
                     <md:Ripple Feedback="{DynamicResource MaterialDesign.Brush.Primary.Light}"
                                HorizontalContentAlignment="Stretch"
                                VerticalContentAlignment="Stretch"
                                Focusable="False">
                         <Grid>
-                            <!-- Content -->
                             <Grid Margin="20,16">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
@@ -45,13 +77,8 @@
                                 </Grid.RowDefinitions>
 
                                 <StackPanel Orientation="Horizontal">
-                                    <Border Width="40" Height="40" CornerRadius="20"
-                                            Background="{DynamicResource MaterialDesign.Brush.Primary.Light}">
-                                        <TextBlock Text="{Binding Initial}"
-                                                   FontSize="18" FontWeight="Bold"
-                                                   HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                   Foreground="{DynamicResource MaterialDesign.Brush.Primary.Light.Foreground}"/>
-                                    </Border>
+                                    <ContentPresenter Content="{Binding}"
+                                                      ContentTemplate="{StaticResource AvatarSmall}"/>
                                     <TextBlock Text="{Binding IGN}" FontSize="16" FontWeight="SemiBold"
                                                VerticalAlignment="Center" Margin="12,0,0,0"
                                                TextTrimming="CharacterEllipsis" MaxWidth="160"/>
@@ -73,34 +100,25 @@
                                 </StackPanel>
                             </Grid>
 
-                            <!-- Hover overlay (animated) -->
-                            <Border x:Name="HoverOverlay"
-                                    Background="#000000" Opacity="0"
+                            <Border x:Name="HoverOverlay" Background="#000000" Opacity="0"
                                     IsHitTestVisible="False"/>
                         </Grid>
                     </md:Ripple>
                 </Grid>
 
-                <!-- Border outline (outside clip, drawn on top) -->
                 <Border CornerRadius="16" BorderThickness="1" IsHitTestVisible="False"
                         BorderBrush="{DynamicResource MaterialDesignDivider}"/>
-
-                <!-- Selection border -->
                 <Border CornerRadius="16" BorderThickness="2.5" IsHitTestVisible="False"
                         BorderBrush="{DynamicResource MaterialDesign.Brush.Primary}"
                         Visibility="{Binding IsSelected, Converter={StaticResource BoolVis}}"/>
-
-                <!-- Check badge -->
                 <Border Width="26" Height="26" CornerRadius="13" IsHitTestVisible="False"
-                        HorizontalAlignment="Right" VerticalAlignment="Top"
-                        Margin="0,-3,-3,0"
+                        HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-3,-3,0"
                         Background="{DynamicResource MaterialDesign.Brush.Primary}"
                         Visibility="{Binding IsSelected, Converter={StaticResource BoolVis}}">
                     <md:PackIcon Kind="Check" Width="16" Height="16" Foreground="White"
                                  HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
 
-                <!-- Hover fade triggers -->
                 <Grid.Triggers>
                     <EventTrigger RoutedEvent="Mouse.MouseEnter">
                         <BeginStoryboard>
@@ -133,18 +151,16 @@
         </DataTemplate>
 
         <!-- ═══════════════════════════════════════════════════
-             LIST TEMPLATE — Geometry clip, no OpacityMask
+             LIST TEMPLATE
              ═══════════════════════════════════════════════════ -->
         <DataTemplate x:Key="ListTpl">
-            <Grid Cursor="Hand" MouseLeftButtonUp="OnCardClick"
-                  Margin="0,1">
+            <Grid Cursor="Hand" Margin="2,1"
+                  MouseLeftButtonUp="OnCardClick"
+                  helpers:EntranceAnimation.IsEnabled="True">
 
-                <!-- Clipped inner container -->
                 <Grid helpers:CornerRadiusClip.Radius="12">
-
                     <Border CornerRadius="12"
                             Background="{DynamicResource MaterialDesign.Brush.Card.Background}"/>
-
                     <md:Ripple Feedback="{DynamicResource MaterialDesign.Brush.Primary.Light}"
                                HorizontalContentAlignment="Stretch"
                                VerticalContentAlignment="Stretch"
@@ -160,42 +176,31 @@
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
 
-                                <Border Width="34" Height="34" CornerRadius="17"
-                                        Background="{DynamicResource MaterialDesign.Brush.Primary.Light}">
-                                    <TextBlock Text="{Binding Initial}" FontSize="14" FontWeight="Bold"
-                                               HorizontalAlignment="Center" VerticalAlignment="Center"
-                                               Foreground="{DynamicResource MaterialDesign.Brush.Primary.Light.Foreground}"/>
-                                </Border>
-
+                                <ContentPresenter Content="{Binding}"
+                                                  ContentTemplate="{StaticResource AvatarList}"/>
                                 <TextBlock Grid.Column="2" Text="{Binding IGN}"
                                            FontSize="14" FontWeight="SemiBold"
                                            VerticalAlignment="Center"
                                            TextTrimming="CharacterEllipsis"/>
-
                                 <TextBlock Grid.Column="3" Text="{Binding LoginDate}"
                                            FontSize="12.5" Opacity="0.55"
                                            VerticalAlignment="Center"/>
-
                                 <TextBlock Grid.Column="4" Text="{Binding UUIDShort}"
                                            FontSize="11.5" FontFamily="Consolas" Opacity="0.38"
                                            VerticalAlignment="Center"
                                            TextTrimming="CharacterEllipsis"/>
-
                                 <md:PackIcon Grid.Column="5" Kind="CheckCircle" Width="20" Height="20"
                                              Foreground="{DynamicResource MaterialDesign.Brush.Primary}"
                                              VerticalAlignment="Center"
                                              Visibility="{Binding IsSelected, Converter={StaticResource BoolVis}}"/>
                             </Grid>
 
-                            <!-- Hover overlay -->
-                            <Border x:Name="ListHover"
-                                    Background="#000000" Opacity="0"
+                            <Border x:Name="ListHover" Background="#000000" Opacity="0"
                                     IsHitTestVisible="False"/>
                         </Grid>
                     </md:Ripple>
                 </Grid>
 
-                <!-- Hover fade triggers -->
                 <Grid.Triggers>
                     <EventTrigger RoutedEvent="Mouse.MouseEnter">
                         <BeginStoryboard>
@@ -229,20 +234,19 @@
     </UserControl.Resources>
 
     <!-- ═══════════════════════════════════════════════════════════
-         ROOT GRID
+         ROOT
          ═══════════════════════════════════════════════════════════ -->
     <Grid x:Name="RootGrid" ClipToBounds="True">
 
         <!-- ▂▂▂  LAYER 1 : Main content ▂▂▂ -->
         <Grid x:Name="MainContentGrid">
-
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <!-- ── Header bar ── -->
+            <!-- ── Header ── -->
             <Border Grid.Row="0" Padding="24,18,24,10">
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -289,18 +293,26 @@
                                       ToolTip="Toggle card / list">
                             <md:PackIcon Kind="FormatListBulleted" Width="21" Height="21"/>
                             <md:ToggleButtonAssist.OnContent>
-                                <md:PackIcon Kind="FormatListBulleted" Width="21" Height="21"/>
+                                <md:PackIcon Kind="ViewGrid" Width="21" Height="21"/>
                             </md:ToggleButtonAssist.OnContent>
                         </ToggleButton>
+
                         <ToggleButton Style="{StaticResource MaterialDesignFlatPrimaryToggleButton}"
                                       Width="40" Height="40" Margin="4,0"
                                       IsChecked="{Binding IsSelectionMode}"
                                       ToolTip="Toggle selection mode">
-                            <md:PackIcon Kind="TickBoxMultipleOutline" Width="21" Height="21"/>
+                            <md:PackIcon Kind="CheckboxMultipleBlankOutline" Width="21" Height="21"/>
                             <md:ToggleButtonAssist.OnContent>
-                                <md:PackIcon Kind="TickBoxMultipleOutline" Width="21" Height="21"/>
+                                <md:PackIcon Kind="CheckboxMultipleMarked" Width="21" Height="21"/>
                             </md:ToggleButtonAssist.OnContent>
                         </ToggleButton>
+
+                        <!-- Settings button — aligned as icon button matching toggle size -->
+                        <Button Style="{StaticResource MaterialDesignIconForegroundButton}"
+                                Width="40" Height="40" Margin="4,0"
+                                Click="OnOpenSettings" ToolTip="Settings">
+                            <md:PackIcon Kind="CogOutline" Width="21" Height="21"/>
+                        </Button>
                     </StackPanel>
                 </Grid>
             </Border>
@@ -319,15 +331,14 @@
             <!-- ── Content ── -->
             <Grid Grid.Row="2" Margin="16,0,16,0">
 
-                <!-- Card view — deferred scrolling for large sets -->
+                <!-- Card view -->
                 <ScrollViewer VerticalScrollBarVisibility="Auto"
                               HorizontalScrollBarVisibility="Disabled"
-                              IsDeferredScrollingEnabled="True"
                               Padding="4,0"
                               Visibility="{Binding IsCardView, Converter={StaticResource BoolVis}}">
                     <ItemsControl ItemsSource="{Binding DisplayItems}"
                                   ItemTemplate="{StaticResource CardTpl}"
-                                  Margin="0,0,0,90">
+                                  Margin="0,0,0,80">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <WrapPanel Orientation="Horizontal"/>
@@ -335,31 +346,22 @@
                         </ItemsControl.ItemsPanel>
                     </ItemsControl>
                 </ScrollViewer>
-                <!-- List view — fully virtualised -->
-                <ItemsControl ItemsSource="{Binding DisplayItems}"
-                              ItemTemplate="{StaticResource ListTpl}"
-                              VirtualizingPanel.IsVirtualizing="True"
-                              VirtualizingPanel.VirtualizationMode="Recycling"
-                              VirtualizingPanel.ScrollUnit="Pixel"
-                              VirtualizingPanel.CacheLength="2,2"
-                              VirtualizingPanel.CacheLengthUnit="Page"
-                              ScrollViewer.CanContentScroll="True"
+
+                <!-- List view -->
+                <ScrollViewer x:Name="ListScrollViewer"
+                              VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled"
                               Visibility="{Binding IsListView, Converter={StaticResource BoolVis}}">
-                    <ItemsControl.Template>
-                        <ControlTemplate TargetType="ItemsControl">
-                            <ScrollViewer VerticalScrollBarVisibility="Auto"
-                                          HorizontalScrollBarVisibility="Disabled"
-                                          CanContentScroll="True" Focusable="False"
-                                          Padding="4,0">
-                                <ItemsPresenter Margin="0,0,0,90"/>
-                            </ScrollViewer>
-                        </ControlTemplate>
-                    </ItemsControl.Template>                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <VirtualizingStackPanel/>
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                </ItemsControl>
+                    <ItemsControl ItemsSource="{Binding DisplayItems}"
+                                  ItemTemplate="{StaticResource ListTpl}"
+                                  Margin="0,0,0,80">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+                </ScrollViewer>
 
                 <!-- Empty state -->
                 <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
@@ -374,43 +376,32 @@
             </Grid>
         </Grid>
 
-        <!-- ▂▂▂  LAYER 2 : Selection action bar ▂▂▂ -->
-        <Border x:Name="SelectionBar"
-                VerticalAlignment="Bottom"
-                Margin="20,0,20,0"
-                Padding="24,12"
-                CornerRadius="20,20,0,0"
+        <!-- ▂▂▂  LAYER 2 : Selection bar ▂▂▂ -->
+        <Border x:Name="SelectionBar" VerticalAlignment="Bottom"
+                Margin="20,0,20,0" Padding="24,12" CornerRadius="20,20,0,0"
                 Background="{DynamicResource MaterialDesign.Brush.Card.Background}"
-                RenderTransformOrigin="0.5,1"
-                UseLayoutRounding="True">
+                RenderTransformOrigin="0.5,1" UseLayoutRounding="True">
             <Border.Effect>
                 <DropShadowEffect ShadowDepth="0" BlurRadius="20" Opacity="0.16" Direction="90"/>
             </Border.Effect>
             <Border.RenderTransform>
                 <TranslateTransform x:Name="BarSlide" Y="120"/>
             </Border.RenderTransform>
-
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                     <Button Style="{StaticResource MaterialDesignFlatButton}"
-                            Content="Select All" Height="34" FontSize="12.5"
-                            Click="OnSelectAll"/>
+                            Content="Select All" Height="34" FontSize="12.5" Click="OnSelectAll"/>
                     <Button Style="{StaticResource MaterialDesignFlatButton}"
                             Content="Deselect" Height="34" FontSize="12.5"
                             Margin="2,0,0,0" Click="OnDeselectAll"/>
                 </StackPanel>
-
-                <StackPanel Grid.Column="2" Orientation="Horizontal"
-                            VerticalAlignment="Center">
-
-                    <Button x:Name="DelSelBtn" Click="OnDeleteSelected"
-                            Height="38" Margin="0,0,8,0"
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button x:Name="DelSelBtn" Click="OnDeleteSelected" Height="38" Margin="0,0,8,0"
                             RenderTransformOrigin="0.5,0.5"
                             Style="{StaticResource MaterialDesignRaisedButton}"
                             md:ButtonAssist.CornerRadius="19"
@@ -427,9 +418,7 @@
                                        VerticalAlignment="Center" FontWeight="Medium"/>
                         </StackPanel>
                     </Button>
-
-                    <Button x:Name="ExpSelBtn" Click="OnExportSelected"
-                            Height="38" Margin="0,0,8,0"
+                    <Button x:Name="ExpSelBtn" Click="OnExportSelected" Height="38" Margin="0,0,8,0"
                             RenderTransformOrigin="0.5,0.5"
                             Style="{StaticResource MaterialDesignOutlinedButton}"
                             md:ButtonAssist.CornerRadius="19">
@@ -443,7 +432,6 @@
                                        VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
-
                     <Button Click="OnExportAll" Height="38" Margin="0,0,8,0"
                             Style="{StaticResource MaterialDesignOutlinedButton}"
                             md:ButtonAssist.CornerRadius="19">
@@ -454,7 +442,6 @@
                                        VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
-
                     <Button Click="OnDeleteAll" Height="38"
                             Style="{StaticResource MaterialDesignOutlinedButton}"
                             md:ButtonAssist.CornerRadius="19"
@@ -471,18 +458,119 @@
             </Grid>
         </Border>
 
-        <!-- ▂▂▂  LAYER 3 : Detail overlay ▂▂▂ -->
-        <Grid x:Name="DetailOverlay" Visibility="Collapsed"
+        <!-- ▂▂▂  LAYER 3 : Settings drawer overlay ▂▂▂ -->
+        <Grid x:Name="SettingsOverlay" Visibility="Collapsed"
               Background="Transparent" Focusable="True"
-              KeyDown="OnOverlayKey">
+              KeyDown="OnSettingsOverlayKey">
+
+            <Border x:Name="SettingsDim" Background="#66000000" Opacity="0"
+                    MouseLeftButtonDown="OnSettingsDimClick"/>
+
+            <!-- Right-side drawer panel -->
+            <Border x:Name="SettingsDrawer"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Stretch"
+                    Width="320"
+                    Background="{DynamicResource MaterialDesign.Brush.Card.Background}"
+                    CornerRadius="24,0,0,24"
+                    Padding="0"
+                    UseLayoutRounding="True" SnapsToDevicePixels="True"
+                    RenderTransformOrigin="1,0.5">
+                <Border.Effect>
+                    <DropShadowEffect ShadowDepth="-4" BlurRadius="32" Opacity="0.22" Direction="180"/>
+                </Border.Effect>
+                <Border.RenderTransform>
+                    <TranslateTransform x:Name="DrawerSlide" X="340"/>
+                </Border.RenderTransform>
+
+                <Grid Margin="28,28,28,24">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="24"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Drawer header -->
+                    <Grid Grid.Row="0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Settings" FontSize="20" FontWeight="SemiBold"
+                                   VerticalAlignment="Center"/>
+                        <Button Grid.Column="1"
+                                Style="{StaticResource MaterialDesignIconForegroundButton}"
+                                Width="36" Height="36"
+                                Click="OnCloseSettings" ToolTip="Close">
+                            <md:PackIcon Kind="Close" Width="20" Height="20"/>
+                        </Button>
+                    </Grid>
+
+                    <!-- Drawer content -->
+                    <ScrollViewer Grid.Row="2"
+                                  VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Disabled">
+                        <StackPanel>
+                            <!-- Sort -->
+                            <TextBlock Text="SORT BY" FontWeight="Medium" FontSize="11.5"
+                                       Opacity="0.50" Margin="0,0,0,10"/>
+                            <ComboBox SelectedIndex="{Binding SortIndex}"
+                                      Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                                      md:HintAssist.Hint="Sort order"
+                                      Margin="0,0,0,24">
+                                <ComboBoxItem Content="Date (Newest first)"/>
+                                <ComboBoxItem Content="Date (Oldest first)"/>
+                                <ComboBoxItem Content="Name (A → Z)"/>
+                                <ComboBoxItem Content="Name (Z → A)"/>
+                            </ComboBox>
+
+                            <!-- Card size -->
+                            <TextBlock Text="CARD SIZE" FontWeight="Medium" FontSize="11.5"
+                                       Opacity="0.50" Margin="0,0,0,10"/>
+                            <Grid Margin="0,0,0,24">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <Slider Value="{Binding CardWidth}"
+                                        Minimum="180" Maximum="360"
+                                        TickFrequency="5"
+                                        IsSnapToTickEnabled="True"/>
+                                <TextBlock Grid.Column="1"
+                                           Text="{Binding CardWidth, StringFormat={}{0:0}}"
+                                           FontSize="12" Opacity="0.55"
+                                           VerticalAlignment="Center" Margin="12,0,0,0"/>
+                            </Grid>
+
+                            <Separator Margin="0,0,0,20"/>
+
+                            <!-- Refresh all heads -->
+                            <Button Style="{StaticResource MaterialDesignOutlinedButton}"
+                                    Height="40" HorizontalAlignment="Stretch"
+                                    md:ButtonAssist.CornerRadius="20"
+                                    Click="OnRefreshAllHeads">
+                                <StackPanel Orientation="Horizontal">
+                                    <md:PackIcon Kind="FaceManProfile" Width="19" Height="19"
+                                                 VerticalAlignment="Center"/>
+                                    <TextBlock Text="Refresh All Head Skins" Margin="8,0,0,0"
+                                               VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- ▂▂▂  LAYER 4 : Detail overlay ▂▂▂ -->
+        <Grid x:Name="DetailOverlay" Visibility="Collapsed"
+              Background="Transparent" Focusable="True" KeyDown="OnOverlayKey">
 
             <Border x:Name="DimBg" Background="#66000000" Opacity="0"
                     MouseLeftButtonDown="OnDimClick"/>
 
-            <Border x:Name="DetailCard"
-                    MaxWidth="540" MaxHeight="600"
-                    Margin="32"
-                    CornerRadius="24" Padding="0"
+            <Border x:Name="DetailCard" MaxWidth="540" MaxHeight="600"
+                    Margin="32" CornerRadius="24" Padding="0"
                     VerticalAlignment="Center" HorizontalAlignment="Center"
                     Background="{DynamicResource MaterialDesign.Brush.Card.Background}"
                     UseLayoutRounding="True" SnapsToDevicePixels="True"
@@ -511,16 +599,22 @@
                     </Button>
 
                     <StackPanel Grid.Row="0" HorizontalAlignment="Center">
-                        <Border Width="56" Height="56" CornerRadius="28"
-                                HorizontalAlignment="Center"
-                                Background="{DynamicResource MaterialDesign.Brush.Primary.Light}">
-                            <TextBlock Text="{Binding DetailItem.Initial}"
-                                       FontSize="24" FontWeight="Bold"
-                                       HorizontalAlignment="Center" VerticalAlignment="Center"
-                                       Foreground="{DynamicResource MaterialDesign.Brush.Primary.Light.Foreground}"/>
-                        </Border>
-                        <TextBlock Text="{Binding DetailItem.IGN}"
-                                   FontSize="21" FontWeight="SemiBold"
+                        <Grid Width="56" Height="56" HorizontalAlignment="Center">
+                            <Border CornerRadius="28"
+                                    Background="{DynamicResource MaterialDesign.Brush.Primary.Light}">
+                                <TextBlock Text="{Binding DetailItem.Initial}"
+                                           FontSize="24" FontWeight="Bold"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           Foreground="{DynamicResource MaterialDesign.Brush.Primary.Light.Foreground}"/>
+                            </Border>
+                            <Border CornerRadius="28" helpers:CornerRadiusClip.Radius="28"
+                                    Visibility="{Binding DetailItem.HasHeadImage, Converter={StaticResource BoolVis}}">
+                                <Image Source="{Binding DetailItem.HeadImage}"
+                                       Stretch="UniformToFill"
+                                       RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+                            </Border>
+                        </Grid>
+                        <TextBlock Text="{Binding DetailItem.IGN}" FontSize="21" FontWeight="SemiBold"
                                    HorizontalAlignment="Center" Margin="0,10,0,3"/>
                         <TextBlock HorizontalAlignment="Center" Opacity="0.50" FontSize="12.5">
                             <Run Text="Logged in:"/>
@@ -533,8 +627,7 @@
                         </TextBlock>
                     </StackPanel>
 
-                    <ScrollViewer Grid.Row="2"
-                                  VerticalScrollBarVisibility="Auto"
+                    <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto"
                                   HorizontalScrollBarVisibility="Disabled">
                         <StackPanel>
                             <Border CornerRadius="12" Padding="14,10" Margin="0,0,0,6"
@@ -545,11 +638,9 @@
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <StackPanel>
-                                        <TextBlock Text="UUID" FontSize="11" Opacity="0.50"
-                                                   FontWeight="Medium"/>
-                                        <TextBlock Text="{Binding DetailItem.UUID}"
-                                                   FontSize="12.5" FontFamily="Consolas"
-                                                   Margin="0,3,0,0" TextWrapping="Wrap"/>
+                                        <TextBlock Text="UUID" FontSize="11" Opacity="0.50" FontWeight="Medium"/>
+                                        <TextBlock Text="{Binding DetailItem.UUID}" FontSize="12.5"
+                                                   FontFamily="Consolas" Margin="0,3,0,0" TextWrapping="Wrap"/>
                                     </StackPanel>
                                     <Button Grid.Column="1" Tag="UUID" Click="OnCopyField"
                                             Style="{StaticResource MaterialDesignIconForegroundButton}"
@@ -558,7 +649,6 @@
                                     </Button>
                                 </Grid>
                             </Border>
-
                             <Border CornerRadius="12" Padding="14,10" Margin="0,0,0,6"
                                     Background="{DynamicResource MaterialDesign.Brush.Background}">
                                 <Grid>
@@ -567,12 +657,9 @@
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <StackPanel>
-                                        <TextBlock Text="Refresh Token" FontSize="11" Opacity="0.50"
-                                                   FontWeight="Medium"/>
-                                        <TextBlock Text="{Binding DetailItem.RefShort}"
-                                                   FontSize="12.5" FontFamily="Consolas"
-                                                   Margin="0,3,0,0"
-                                                   TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Text="Refresh Token" FontSize="11" Opacity="0.50" FontWeight="Medium"/>
+                                        <TextBlock Text="{Binding DetailItem.RefShort}" FontSize="12.5"
+                                                   FontFamily="Consolas" Margin="0,3,0,0" TextTrimming="CharacterEllipsis"/>
                                     </StackPanel>
                                     <Button Grid.Column="1" Tag="RefToken" Click="OnCopyField"
                                             Style="{StaticResource MaterialDesignIconForegroundButton}"
@@ -581,7 +668,6 @@
                                     </Button>
                                 </Grid>
                             </Border>
-
                             <Border CornerRadius="12" Padding="14,10" Margin="0,0,0,6"
                                     Background="{DynamicResource MaterialDesign.Brush.Background}">
                                 <Grid>
@@ -590,12 +676,9 @@
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <StackPanel>
-                                        <TextBlock Text="Access Token" FontSize="11" Opacity="0.50"
-                                                   FontWeight="Medium"/>
-                                        <TextBlock Text="{Binding DetailItem.AccShort}"
-                                                   FontSize="12.5" FontFamily="Consolas"
-                                                   Margin="0,3,0,0"
-                                                   TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Text="Access Token" FontSize="11" Opacity="0.50" FontWeight="Medium"/>
+                                        <TextBlock Text="{Binding DetailItem.AccShort}" FontSize="12.5"
+                                                   FontFamily="Consolas" Margin="0,3,0,0" TextTrimming="CharacterEllipsis"/>
                                     </StackPanel>
                                     <Button Grid.Column="1" Tag="AccToken" Click="OnCopyField"
                                             Style="{StaticResource MaterialDesignIconForegroundButton}"
@@ -607,29 +690,22 @@
                         </StackPanel>
                     </ScrollViewer>
 
-                    <StackPanel Grid.Row="4" Orientation="Horizontal"
-                                HorizontalAlignment="Center">
+                    <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Center">
                         <Button Style="{StaticResource MaterialDesignRaisedButton}"
-                                Height="40" Padding="18,0"
-                                md:ButtonAssist.CornerRadius="20"
-                                Click="OnDetailRefresh" ToolTip="Refresh this token via Converter">
+                                Height="40" Padding="18,0" md:ButtonAssist.CornerRadius="20"
+                                Click="OnDetailRefresh" ToolTip="Refresh token">
                             <StackPanel Orientation="Horizontal">
-                                <md:PackIcon Kind="Refresh" Width="19" Height="19"
-                                             VerticalAlignment="Center"/>
+                                <md:PackIcon Kind="Refresh" Width="19" Height="19" VerticalAlignment="Center"/>
                                 <TextBlock Text="Refresh Token" Margin="7,0,0,0"
                                            VerticalAlignment="Center" FontWeight="Medium"/>
                             </StackPanel>
                         </Button>
-
                         <Button Style="{StaticResource MaterialDesignOutlinedButton}"
                                 Height="40" Padding="18,0" Margin="10,0,0,0"
-                                md:ButtonAssist.CornerRadius="20"
-                                Click="OnCopyAll" ToolTip="Copy every field">
+                                md:ButtonAssist.CornerRadius="20" Click="OnCopyAll" ToolTip="Copy all">
                             <StackPanel Orientation="Horizontal">
-                                <md:PackIcon Kind="ContentCopy" Width="17" Height="17"
-                                             VerticalAlignment="Center"/>
-                                <TextBlock Text="Copy All" Margin="7,0,0,0"
-                                           VerticalAlignment="Center"/>
+                                <md:PackIcon Kind="ContentCopy" Width="17" Height="17" VerticalAlignment="Center"/>
+                                <TextBlock Text="Copy All" Margin="7,0,0,0" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
                     </StackPanel>
@@ -637,9 +713,7 @@
             </Border>
         </Grid>
 
-        <!-- ▂▂▂  LAYER 4 : Snackbar ▂▂▂ -->
-        <md:Snackbar x:Name="Snackbar"
-                     VerticalAlignment="Bottom" HorizontalAlignment="Center"
-                     Margin="0,0,0,14"/>
+        <md:Snackbar x:Name="Snackbar" VerticalAlignment="Bottom"
+                     HorizontalAlignment="Center" Margin="0,0,0,14"/>
     </Grid>
 </UserControl>

@@ -11,13 +11,18 @@ using System.Windows.Threading;
 
 namespace RefreshToAccess2.ViewModels
 {
+    public enum SortMode { DateNewest, DateOldest, NameAsc, NameDesc }
+
     public sealed class AltManagerViewModel : ViewModelBase
     {
         private readonly ObservableCollection<ProfileDataBlock> _master;
         private readonly Dictionary<ProfileDataBlock, ProfileCardItem> _cardCache = new();
         private DispatcherTimer? _debounceTimer;
+        private DispatcherTimer? _headSaveTimer;
 
         public ObservableCollection<ProfileCardItem> DisplayItems { get; } = new();
+
+        // ── Backing fields ─────────────────────────────────────────
 
         private string _searchText = "";
         private bool _isSelectionMode;
@@ -27,15 +32,15 @@ namespace RefreshToAccess2.ViewModels
         private int _selectionCount;
         private int _totalCount;
         private bool _isSearching;
+        private SortMode _sortMode = SortMode.DateNewest;
+        private double _cardWidth = 258;
+
+        // ── Properties ─────────────────────────────────────────────
 
         public string SearchText
         {
             get => _searchText;
-            set
-            {
-                SetField(ref _searchText, value);
-                ScheduleFilter();
-            }
+            set { SetField(ref _searchText, value); ScheduleFilter(); }
         }
 
         public bool IsSearching
@@ -60,11 +65,7 @@ namespace RefreshToAccess2.ViewModels
         public bool IsCardView
         {
             get => _isCardView;
-            set
-            {
-                SetField(ref _isCardView, value);
-                OnPropertyChanged(nameof(IsListView));
-            }
+            set { SetField(ref _isCardView, value); OnPropertyChanged(nameof(IsListView)); }
         }
 
         public bool IsListView => !_isCardView;
@@ -93,6 +94,7 @@ namespace RefreshToAccess2.ViewModels
         }
 
         public bool HasSelection => _selectionCount > 0;
+
         public string SelectionLabel =>
             _selectionCount > 0 ? $"Delete ({_selectionCount})" : "Delete";
 
@@ -103,6 +105,28 @@ namespace RefreshToAccess2.ViewModels
         }
 
         public bool IsEmpty => DisplayItems.Count == 0;
+
+        // ── Settings ───────────────────────────────────────────────
+
+        public int SortIndex
+        {
+            get => (int)_sortMode;
+            set
+            {
+                if (value < 0 || value > 3) return;
+                _sortMode = (SortMode)value;
+                OnPropertyChanged(nameof(SortIndex));
+                ApplyFilterDirect();
+            }
+        }
+
+        public double CardWidth
+        {
+            get => _cardWidth;
+            set => SetField(ref _cardWidth, value);
+        }
+
+        // ── Constructor ────────────────────────────────────────────
 
         public AltManagerViewModel(ObservableCollection<ProfileDataBlock> master)
         {
@@ -126,15 +150,11 @@ namespace RefreshToAccess2.ViewModels
 
         private void ScheduleFilter()
         {
-            // Show progress immediately on keystroke
             IsSearching = true;
-
             if (_debounceTimer == null)
             {
                 _debounceTimer = new DispatcherTimer(DispatcherPriority.Background)
-                {
-                    Interval = TimeSpan.FromMilliseconds(300)
-                };
+                { Interval = TimeSpan.FromMilliseconds(300) };
                 _debounceTimer.Tick += async (_, __) =>
                 {
                     _debounceTimer.Stop();
@@ -149,13 +169,14 @@ namespace RefreshToAccess2.ViewModels
         {
             string query = (_searchText ?? "").Trim();
             var snapshot = _master.ToList();
+            var mode = _sortMode;
 
-            List<ProfileDataBlock> filtered = await Task.Run(() =>
+            var filtered = await Task.Run(() =>
             {
-                if (string.IsNullOrEmpty(query))
-                    return snapshot;
-                string q = query.ToLowerInvariant();
-                return snapshot.Where(p => Matches(p, q)).ToList();
+                var list = string.IsNullOrEmpty(query)
+                    ? snapshot
+                    : snapshot.Where(p => Matches(p, query.ToLowerInvariant())).ToList();
+                return Sort(list, mode);
             });
 
             RebuildDisplay(filtered);
@@ -164,19 +185,23 @@ namespace RefreshToAccess2.ViewModels
 
         private void ApplyFilterDirect()
         {
-            string query = (_searchText ?? "").Trim().ToLowerInvariant();
+            string q = (_searchText ?? "").Trim().ToLowerInvariant();
+            var source = string.IsNullOrEmpty(q)
+                ? _master.ToList()
+                : _master.Where(p => Matches(p, q)).ToList();
 
-            IEnumerable<ProfileDataBlock> source = string.IsNullOrEmpty(query)
-                ? _master
-                : _master.Where(p => Matches(p, query));
-
-            RebuildDisplay(source.ToList());
+            RebuildDisplay(Sort(source, _sortMode));
             IsSearching = false;
         }
 
         private void RebuildDisplay(List<ProfileDataBlock> filtered)
         {
-            foreach (var c in DisplayItems) c.SelectionChanged -= OnCardSel;
+            // Unsubscribe old cards
+            foreach (var c in DisplayItems)
+            {
+                c.SelectionChanged -= OnCardSel;
+                c.HeadUpdated -= OnHeadUpdated;
+            }
 
             DisplayItems.Clear();
             TotalCount = _master.Count;
@@ -189,6 +214,7 @@ namespace RefreshToAccess2.ViewModels
                     _cardCache[p] = card;
                 }
                 card.SelectionChanged += OnCardSel;
+                card.HeadUpdated += OnHeadUpdated;
                 DisplayItems.Add(card);
             }
 
@@ -196,10 +222,44 @@ namespace RefreshToAccess2.ViewModels
             OnPropertyChanged(nameof(IsEmpty));
         }
 
+        // ── Debounced save after head updates ──────────────────────
+
+        private void OnHeadUpdated(object? sender, EventArgs e)
+        {
+            // Debounce: save 3 seconds after the last head update
+            // so batch loads only trigger one save.
+            if (_headSaveTimer == null)
+            {
+                _headSaveTimer = new DispatcherTimer(DispatcherPriority.Background)
+                {
+                    Interval = TimeSpan.FromSeconds(3)
+                };
+                _headSaveTimer.Tick += (_, __) =>
+                {
+                    _headSaveTimer.Stop();
+                    Save();
+                };
+            }
+            _headSaveTimer.Stop();
+            _headSaveTimer.Start();
+        }
+
+        // ── Sorting ────────────────────────────────────────────────
+
+        private static List<ProfileDataBlock> Sort(
+            List<ProfileDataBlock> src, SortMode m) => m switch
+        {
+            SortMode.NameAsc    => src.OrderBy(p => p.profileData?.IGN ?? "",
+                                       StringComparer.OrdinalIgnoreCase).ToList(),
+            SortMode.NameDesc   => src.OrderByDescending(p => p.profileData?.IGN ?? "",
+                                       StringComparer.OrdinalIgnoreCase).ToList(),
+            SortMode.DateOldest => src.OrderBy(p => p.loginDate ?? "").ToList(),
+            _                   => src.OrderByDescending(p => p.loginDate ?? "").ToList(),
+        };
+
         // ── Public API ─────────────────────────────────────────────
 
-        public List<ProfileDataBlock> AllProfiles() => new(_master);
-
+        public List<ProfileDataBlock> AllProfiles()      => new(_master);
         public List<ProfileDataBlock> SelectedProfiles() =>
             DisplayItems.Where(i => i.IsSelected).Select(i => i.Block).ToList();
 
@@ -210,12 +270,9 @@ namespace RefreshToAccess2.ViewModels
         {
             var sel = SelectedProfiles();
             if (sel.Count == 0) return;
-            if (MessageBox.Show(
-                    $"Permanently delete {sel.Count} selected account(s)?",
-                    "Confirm delete",
-                    MessageBoxButton.YesNo,
-                    MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
-
+            if (MessageBox.Show($"Permanently delete {sel.Count} selected account(s)?",
+                    "Confirm", MessageBoxButton.YesNo, MessageBoxImage.Warning)
+                != MessageBoxResult.Yes) return;
             foreach (var s in sel) _master.Remove(s);
             Save();
         }
@@ -223,22 +280,35 @@ namespace RefreshToAccess2.ViewModels
         public void DeleteAll()
         {
             if (_master.Count == 0) return;
-            if (MessageBox.Show(
-                    "Permanently delete ALL stored accounts?",
-                    "Confirm delete all",
-                    MessageBoxButton.YesNo,
-                    MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
-
+            if (MessageBox.Show("Permanently delete ALL stored accounts?",
+                    "Confirm", MessageBoxButton.YesNo, MessageBoxImage.Warning)
+                != MessageBoxResult.Yes) return;
             _master.Clear();
             RegistryService.Write("ProfileDataList", "");
         }
 
         public void Save() => ProfileService.Save(new List<ProfileDataBlock>(_master));
 
+        /// <summary>
+        /// Force an immediate save (call when navigating away, etc.).
+        /// Stops any pending debounced head-save timer.
+        /// </summary>
+        public void FlushPendingSave()
+        {
+            if (_headSaveTimer is { IsEnabled: true })
+            {
+                _headSaveTimer.Stop();
+                Save();
+            }
+        }
+
         // ── Internal ───────────────────────────────────────────────
 
-        private void ClearSelections() { foreach (var i in DisplayItems) i.IsSelected = false; }
+        private void ClearSelections()
+        { foreach (var i in DisplayItems) i.IsSelected = false; }
+
         private void OnCardSel(object? s, EventArgs e) => RecountSelection();
+
         private void RecountSelection() =>
             SelectionCount = DisplayItems.Count(i => i.IsSelected);
 
@@ -251,6 +321,7 @@ namespace RefreshToAccess2.ViewModels
         }
 
         private static bool Hit(string? v, string q) =>
-            !string.IsNullOrEmpty(v) && v.IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0;
+            !string.IsNullOrEmpty(v) &&
+            v.IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0;
     }
 }

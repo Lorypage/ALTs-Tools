@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -25,11 +26,9 @@ namespace RefreshToAccess2.Views
         private readonly SnackbarMessageQueue _snack = new(TimeSpan.FromSeconds(2));
         private bool _barShown, _delShown;
         private BlurEffect? _blur;
+        private BlurEffect? _settingsBlur;
 
-        // Shared easing — always EaseOut for both open and close
         private static readonly CubicEase _easeOut = new() { EasingMode = EasingMode.EaseOut };
-
-        // Background blur target radius
         private const double BlurRadius = 24;
 
         public AltManagerView()
@@ -43,10 +42,8 @@ namespace RefreshToAccess2.Views
 
         private void OnDCChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
-            if (e.OldValue is AltManagerViewModel old)
-                old.PropertyChanged -= OnVMProp;
-            if (e.NewValue is AltManagerViewModel vm)
-                vm.PropertyChanged += OnVMProp;
+            if (e.OldValue is AltManagerViewModel old) old.PropertyChanged -= OnVMProp;
+            if (e.NewValue is AltManagerViewModel vm)  vm.PropertyChanged  += OnVMProp;
         }
 
         private void OnVMProp(object? s, PropertyChangedEventArgs e)
@@ -54,19 +51,16 @@ namespace RefreshToAccess2.Views
             switch (e.PropertyName)
             {
                 case nameof(AltManagerViewModel.IsSelectionMode):
-                    AnimateBar(VM!.IsSelectionMode);
-                    break;
+                    AnimateBar(VM!.IsSelectionMode); break;
                 case nameof(AltManagerViewModel.HasSelection):
-                    AnimateDelBtn(VM!.HasSelection);
-                    break;
+                    AnimateDelBtn(VM!.HasSelection); break;
                 case nameof(AltManagerViewModel.IsSearching):
-                    AnimateSearchBar(VM!.IsSearching);
-                    break;
+                    AnimateSearchBar(VM!.IsSearching); break;
             }
         }
 
         // ══════════════════════════════════════════════════════════
-        //   SEARCH PROGRESS BAR ANIMATION
+        //   SEARCH PROGRESS
         // ══════════════════════════════════════════════════════════
 
         private void AnimateSearchBar(bool show)
@@ -80,17 +74,16 @@ namespace RefreshToAccess2.Views
             }
             else
             {
-                var fadeOut = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(350))
+                var fade = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(350))
                 { EasingFunction = _easeOut };
-                fadeOut.Completed += (_, __) =>
+                fade.Completed += (_, __) =>
                 {
                     SearchProgress.BeginAnimation(OpacityProperty, null);
                     SearchProgress.Opacity = 0;
-                    // Only collapse if still not searching
                     if (VM is null || !VM.IsSearching)
                         SearchProgress.Visibility = Visibility.Collapsed;
                 };
-                SearchProgress.BeginAnimation(OpacityProperty, fadeOut);
+                SearchProgress.BeginAnimation(OpacityProperty, fade);
             }
         }
 
@@ -104,14 +97,12 @@ namespace RefreshToAccess2.Views
                 fe.DataContext is not ProfileCardItem item) return;
             if (VM is null) return;
 
-            if (VM.IsSelectionMode)
-                item.IsSelected = !item.IsSelected;
-            else
-                OpenDetail(item);
+            if (VM.IsSelectionMode) item.IsSelected = !item.IsSelected;
+            else OpenDetail(item);
         }
 
         // ══════════════════════════════════════════════════════════
-        //   DETAIL OVERLAY — OPEN
+        //   DETAIL OVERLAY
         // ══════════════════════════════════════════════════════════
 
         private void OpenDetail(ProfileCardItem item)
@@ -121,95 +112,57 @@ namespace RefreshToAccess2.Views
             VM.IsDetailOpen = true;
 
             ClearDetailAnims();
-
-            // Reset to starting state
             DetailCard.Opacity = 0;
-            CardScale.ScaleX = 0.92;
-            CardScale.ScaleY = 0.92;
+            CardScale.ScaleX = 0.92; CardScale.ScaleY = 0.92;
             DimBg.Opacity = 0;
 
-            // Create blur dynamically — not present when overlay closed
             _blur = new BlurEffect { Radius = 0, RenderingBias = RenderingBias.Performance };
             MainContentGrid.Effect = _blur;
-
             DetailOverlay.Visibility = Visibility.Visible;
             DetailOverlay.Focus();
 
-            var openDur = TimeSpan.FromMilliseconds(400);
-
-            // Blur background heavily
+            var dur = TimeSpan.FromMilliseconds(400);
             _blur.BeginAnimation(BlurEffect.RadiusProperty,
-                new DoubleAnimation(0, BlurRadius, openDur) { EasingFunction = _easeOut });
-
-            // Dim background
+                new DoubleAnimation(0, BlurRadius, dur) { EasingFunction = _easeOut });
             DimBg.BeginAnimation(OpacityProperty,
-                new DoubleAnimation(0, 1, openDur) { EasingFunction = _easeOut });
-
-            // Card scale up
+                new DoubleAnimation(0, 1, dur) { EasingFunction = _easeOut });
             CardScale.BeginAnimation(ScaleTransform.ScaleXProperty,
-                new DoubleAnimation(0.92, 1, openDur) { EasingFunction = _easeOut });
+                new DoubleAnimation(0.92, 1, dur) { EasingFunction = _easeOut });
             CardScale.BeginAnimation(ScaleTransform.ScaleYProperty,
-                new DoubleAnimation(0.92, 1, openDur) { EasingFunction = _easeOut });
-
-            // Card fade in
+                new DoubleAnimation(0.92, 1, dur) { EasingFunction = _easeOut });
             DetailCard.BeginAnimation(OpacityProperty,
-                new DoubleAnimation(0, 1, openDur) { EasingFunction = _easeOut });
+                new DoubleAnimation(0, 1, dur) { EasingFunction = _easeOut });
         }
-
-        // ══════════════════════════════════════════════════════════
-        //   DETAIL OVERLAY — CLOSE  (also EaseOut, not reversed)
-        // ══════════════════════════════════════════════════════════
 
         private void CloseDetail()
         {
-            var closeDur = TimeSpan.FromMilliseconds(320);
-
-            // Blur fades out smoothly (EaseOut = starts fast, slows to 0)
+            var dur = TimeSpan.FromMilliseconds(320);
             _blur?.BeginAnimation(BlurEffect.RadiusProperty,
-                new DoubleAnimation(0, closeDur) { EasingFunction = _easeOut });
-
-            // Dim fades out
+                new DoubleAnimation(0, dur) { EasingFunction = _easeOut });
             DimBg.BeginAnimation(OpacityProperty,
-                new DoubleAnimation(0, closeDur) { EasingFunction = _easeOut });
-
-            // Card scales down slightly (EaseOut = snappy start, gentle land)
+                new DoubleAnimation(0, dur) { EasingFunction = _easeOut });
             CardScale.BeginAnimation(ScaleTransform.ScaleXProperty,
-                new DoubleAnimation(0.94, closeDur) { EasingFunction = _easeOut });
+                new DoubleAnimation(0.94, dur) { EasingFunction = _easeOut });
             CardScale.BeginAnimation(ScaleTransform.ScaleYProperty,
-                new DoubleAnimation(0.94, closeDur) { EasingFunction = _easeOut });
-
-            // Card fades out, then clean up
-            var fadeOut = new DoubleAnimation(0, closeDur) { EasingFunction = _easeOut };
-            fadeOut.Completed += OnCloseCompleted;
-            DetailCard.BeginAnimation(OpacityProperty, fadeOut);
+                new DoubleAnimation(0.94, dur) { EasingFunction = _easeOut });
+            var fade = new DoubleAnimation(0, dur) { EasingFunction = _easeOut };
+            fade.Completed += OnCloseCompleted;
+            DetailCard.BeginAnimation(OpacityProperty, fade);
         }
 
         private void OnCloseCompleted(object? s, EventArgs e)
         {
             ClearDetailAnims();
-
             DetailOverlay.Visibility = Visibility.Collapsed;
-
-            // Remove blur entirely — no bitmap render cost when closed
-            MainContentGrid.Effect = null;
-            _blur = null;
-
-            // Reset to initial state for next open
+            MainContentGrid.Effect = null; _blur = null;
             DetailCard.Opacity = 0;
-            CardScale.ScaleX = 0.92;
-            CardScale.ScaleY = 0.92;
+            CardScale.ScaleX = 0.92; CardScale.ScaleY = 0.92;
             DimBg.Opacity = 0;
-
-            if (VM is not null)
-            {
-                VM.IsDetailOpen = false;
-                VM.DetailItem = null;
-            }
+            if (VM is not null) { VM.IsDetailOpen = false; VM.DetailItem = null; }
         }
 
         private void ClearDetailAnims()
         {
-            // Release all held animations to avoid stale values
             DetailCard.BeginAnimation(OpacityProperty, null);
             CardScale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
             CardScale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
@@ -220,43 +173,98 @@ namespace RefreshToAccess2.Views
         private void OnDimClick(object s, MouseButtonEventArgs e) => CloseDetail();
         private void OnCloseDetail(object s, RoutedEventArgs e) => CloseDetail();
         private void OnOverlayKey(object s, KeyEventArgs e)
+        { if (e.Key == Key.Escape) { CloseDetail(); e.Handled = true; } }
+
+        // ══════════════════════════════════════════════════════════
+        //   SETTINGS DRAWER
+        // ══════════════════════════════════════════════════════════
+
+        private void OnOpenSettings(object sender, RoutedEventArgs e) => OpenSettings();
+        private void OnCloseSettings(object sender, RoutedEventArgs e) => CloseSettings();
+        private void OnSettingsDimClick(object sender, MouseButtonEventArgs e) => CloseSettings();
+        private void OnSettingsOverlayKey(object sender, KeyEventArgs e)
+        { if (e.Key == Key.Escape) { CloseSettings(); e.Handled = true; } }
+
+        private void OpenSettings()
         {
-            if (e.Key == Key.Escape) { CloseDetail(); e.Handled = true; }
+            ClearSettingsAnims();
+
+            SettingsDim.Opacity = 0;
+            DrawerSlide.X = 340;
+
+            _settingsBlur = new BlurEffect { Radius = 0, RenderingBias = RenderingBias.Performance };
+            MainContentGrid.Effect = _settingsBlur;
+
+            SettingsOverlay.Visibility = Visibility.Visible;
+            SettingsOverlay.Focus();
+
+            var dur = TimeSpan.FromMilliseconds(380);
+
+            _settingsBlur.BeginAnimation(BlurEffect.RadiusProperty,
+                new DoubleAnimation(0, BlurRadius, dur) { EasingFunction = _easeOut });
+            SettingsDim.BeginAnimation(OpacityProperty,
+                new DoubleAnimation(0, 1, dur) { EasingFunction = _easeOut });
+            DrawerSlide.BeginAnimation(TranslateTransform.XProperty,
+                new DoubleAnimation(340, 0, dur) { EasingFunction = _easeOut });
+        }
+
+        private void CloseSettings()
+        {
+            var dur = TimeSpan.FromMilliseconds(300);
+
+            _settingsBlur?.BeginAnimation(BlurEffect.RadiusProperty,
+                new DoubleAnimation(0, dur) { EasingFunction = _easeOut });
+            SettingsDim.BeginAnimation(OpacityProperty,
+                new DoubleAnimation(0, dur) { EasingFunction = _easeOut });
+
+            var slide = new DoubleAnimation(340, dur) { EasingFunction = _easeOut };
+            slide.Completed += OnSettingsCloseCompleted;
+            DrawerSlide.BeginAnimation(TranslateTransform.XProperty, slide);
+        }
+
+        private void OnSettingsCloseCompleted(object? s, EventArgs e)
+        {
+            ClearSettingsAnims();
+            SettingsOverlay.Visibility = Visibility.Collapsed;
+            MainContentGrid.Effect = null;
+            _settingsBlur = null;
+            SettingsDim.Opacity = 0;
+            DrawerSlide.X = 340;
+        }
+
+        private void ClearSettingsAnims()
+        {
+            SettingsDim.BeginAnimation(OpacityProperty, null);
+            DrawerSlide.BeginAnimation(TranslateTransform.XProperty, null);
+            _settingsBlur?.BeginAnimation(BlurEffect.RadiusProperty, null);
         }
 
         // ══════════════════════════════════════════════════════════
-        //   SELECTION BAR / DELETE BUTTON ANIMATIONS
+        //   SELECTION BAR / DELETE BUTTON
         // ══════════════════════════════════════════════════════════
 
         private void AnimateBar(bool show)
         {
-            if (show == _barShown) return;
-            _barShown = show;
-
+            if (show == _barShown) return; _barShown = show;
             BarSlide.BeginAnimation(TranslateTransform.YProperty,
                 new DoubleAnimation(show ? 0 : 120,
                     TimeSpan.FromMilliseconds(show ? 400 : 280))
                 { EasingFunction = _easeOut });
-
             if (!show) AnimateDelBtn(false);
         }
 
         private void AnimateDelBtn(bool show)
         {
-            if (show == _delShown) return;
-            _delShown = show;
-
+            if (show == _delShown) return; _delShown = show;
             IEasingFunction ease = show
                 ? new BackEase { EasingMode = EasingMode.EaseOut, Amplitude = 0.35 }
                 : _easeOut;
             var dur = TimeSpan.FromMilliseconds(show ? 320 : 200);
             double t = show ? 1 : 0;
-
             DelBtnScale.BeginAnimation(ScaleTransform.ScaleXProperty,
                 new DoubleAnimation(t, dur) { EasingFunction = ease });
             DelBtnScale.BeginAnimation(ScaleTransform.ScaleYProperty,
                 new DoubleAnimation(t, dur) { EasingFunction = ease });
-
             ExpSelScale.BeginAnimation(ScaleTransform.ScaleXProperty,
                 new DoubleAnimation(t, dur) { EasingFunction = ease });
             ExpSelScale.BeginAnimation(ScaleTransform.ScaleYProperty,
@@ -271,10 +279,9 @@ namespace RefreshToAccess2.Views
         {
             if (sender is not Button btn || btn.Tag is not string f) return;
             if (VM?.DetailItem is null) return;
-
             string? v = f switch
             {
-                "UUID" => VM.DetailItem.UUID,
+                "UUID"     => VM.DetailItem.UUID,
                 "RefToken" => VM.DetailItem.RefToken,
                 "AccToken" => VM.DetailItem.AccToken,
                 _ => null
@@ -298,6 +305,8 @@ namespace RefreshToAccess2.Views
             if (VM?.DetailItem is null || RootVM is null) return;
             string rf = VM.DetailItem.RefToken;
             string cid = VM.DetailItem.ClientId;
+            var card = VM.DetailItem;
+
             if (string.IsNullOrEmpty(rf) || rf == "N/A")
             { _snack.Enqueue("No refresh token"); return; }
 
@@ -315,10 +324,25 @@ namespace RefreshToAccess2.Views
                 mw.NavListBoxControl.SelectedIndex = 0;
             }
             await conv.ConvertAsync(new Progress<string>(m => conv.StatusMessage = m));
+            _ = card.RefreshHeadAsync();
         }
 
         // ══════════════════════════════════════════════════════════
-        //   SELECTION-MODE BUTTONS
+        //   SETTINGS ACTIONS
+        // ══════════════════════════════════════════════════════════
+
+        private async void OnRefreshAllHeads(object sender, RoutedEventArgs e)
+        {
+            if (VM is null) return;
+            _snack.Enqueue("Refreshing all head skins…");
+            var items = VM.DisplayItems.ToList();
+            var tasks = items.Select(i => i.RefreshHeadAsync()).ToList();
+            await Task.WhenAll(tasks);
+            _snack.Enqueue($"✓ Refreshed {items.Count} head(s)");
+        }
+
+        // ══════════════════════════════════════════════════════════
+        //   SELECTION BUTTONS
         // ══════════════════════════════════════════════════════════
 
         private void OnSelectAll(object s, RoutedEventArgs e) => VM?.SelectAll();
@@ -388,7 +412,6 @@ namespace RefreshToAccess2.Views
                 if (choice == MessageBoxResult.No) RootVM.TokenProfiles.Clear();
 
                 foreach (var b in imported) RootVM.TokenProfiles.Add(b);
-
                 var dd = ProfileService.RemoveDuplicates(RootVM.TokenProfiles.ToList());
                 RootVM.TokenProfiles.Clear();
                 foreach (var b in dd) RootVM.TokenProfiles.Add(b);
@@ -407,7 +430,7 @@ namespace RefreshToAccess2.Views
 
         private void Copy(string val, string label)
         {
-            try   { Clipboard.SetText(val); _snack.Enqueue($"✓ Copied {label}"); }
+            try { Clipboard.SetText(val); _snack.Enqueue($"✓ Copied {label}"); }
             catch { _snack.Enqueue("Clipboard error"); }
         }
 

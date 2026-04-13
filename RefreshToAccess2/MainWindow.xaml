@@ -15,7 +15,8 @@
         Height="680" Width="1235"
         MinHeight="600" MinWidth="860"
         WindowStartupLocation="CenterScreen"
-        SourceInitialized="OnSourceInitialized"
+        SourceInitialized="OnSourceInitialized"        
+        PreviewKeyDown="OnPreviewKeyDown"
         Closing="OnWindowClosing">
 
     <Window.Resources>
@@ -124,51 +125,44 @@
                              Height="24"/>
             </Button>
 
-            <Viewbox Grid.Row="1"
+            <ListBox Grid.Row="1"
+                     x:Name="NavListBox"
+                     Width="80"
                      VerticalAlignment="Top"
-                     Stretch="Uniform">
-                <ListBox x:Name="NavListBox"
-                         Width="80"
-                         Background="Transparent"
-                         BorderThickness="0"
-                         ItemTemplate="{StaticResource NavRailItemTemplate}"
-                         ItemsSource="{StaticResource NavItems}"
-                         SelectedIndex="0"
-                         SelectionChanged="NavListBox_OnSelectionChanged">
-                    <ListBox.ItemContainerStyle>
-                        <Style TargetType="ListBoxItem"
+                     Background="Transparent"
+                     BorderThickness="0"
+                     ItemTemplate="{StaticResource NavRailItemTemplate}"
+                     ItemsSource="{StaticResource NavItems}"
+                     SelectedIndex="0"
+                     SelectionChanged="NavListBox_OnSelectionChanged">
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="ListBoxItem"
                                BasedOn="{StaticResource MaterialDesign3.NavigationRailPrimaryListBoxItem}">
-                            <Setter Property="ToolTip">
-                                <Setter.Value>
-                                    <ToolTip>
-                                        <TextBlock Text="{Binding IconTooltip}"/>
-                                    </ToolTip>
-                                </Setter.Value>
-                            </Setter>
-                            <Setter Property="md:NavigationRailAssist.IsTextVisible"
+                        <Setter Property="helpers:NavPillAnimation.IsEnabled" Value="True"/>
+                        <Setter Property="md:RippleAssist.IsDisabled" Value="True"/>
+                        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                        <Setter Property="md:NavigationRailAssist.IsTextVisible"
                                     Value="{Binding IsRailExpanded, ElementName=MainWindowRoot}"/>
-                            <Setter Property="md:NavigationRailAssist.SelectedIcon" 
+                        <Setter Property="md:NavigationRailAssist.SelectedIcon"
                                     Value="{Binding SelectedIcon}"/>
-                            <Setter Property="md:NavigationRailAssist.UnselectedIcon" 
+                        <Setter Property="md:NavigationRailAssist.UnselectedIcon"
                                     Value="{Binding UnselectedIcon}"/>
-
-                            <Setter Property="ToolTipService.ShowDuration" Value="5000"/>
-                            <Setter Property="ToolTipService.InitialShowDelay" Value="250"/>
-                            <Setter Property="ToolTipService.BetweenShowDelay" Value="100"/>
-                            <Setter Property="ToolTipService.Placement" Value="Right"/>
-                            <Setter Property="ToolTipService.HorizontalOffset" Value="12"/>
-                            <Setter Property="ToolTipService.VerticalOffset" Value="0"/>
-                            <Setter Property="ToolTip">
-                                <Setter.Value>
-                                    <ToolTip>
-                                        <TextBlock Text="{Binding IconTooltip}"/>
-                                    </ToolTip>
-                                </Setter.Value>
-                            </Setter>
-                        </Style>
-                    </ListBox.ItemContainerStyle>
-                </ListBox>
-            </Viewbox>
+                        <Setter Property="ToolTipService.ShowDuration" Value="5000"/>
+                        <Setter Property="ToolTipService.InitialShowDelay" Value="250"/>
+                        <Setter Property="ToolTipService.BetweenShowDelay" Value="100"/>
+                        <Setter Property="ToolTipService.Placement" Value="Right"/>
+                        <Setter Property="ToolTipService.HorizontalOffset" Value="12"/>
+                        <Setter Property="ToolTipService.VerticalOffset" Value="0"/>
+                        <Setter Property="ToolTip">
+                            <Setter.Value>
+                                <ToolTip>
+                                    <TextBlock Text="{Binding IconTooltip}"/>
+                                </ToolTip>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </ListBox.ItemContainerStyle>
+            </ListBox>
         </Grid>
 
         <!-- Page content -->

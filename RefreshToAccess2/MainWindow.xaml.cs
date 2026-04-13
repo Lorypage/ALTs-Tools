@@ -8,6 +8,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media.Animation;
 
 namespace RefreshToAccess2
@@ -119,6 +120,11 @@ namespace RefreshToAccess2
             {
                 UIElement targetPage = _pages[index];
 
+                // Bump entrance animation generation BEFORE making visible.
+                // This ensures all children's IsVisibleChanged handlers
+                // see the new generation and re-animate.
+                Helpers.EntranceAnimation.BumpGeneration();
+
                 targetPage.Opacity = 0;
                 targetPage.Visibility = Visibility.Visible;
 
@@ -130,7 +136,6 @@ namespace RefreshToAccess2
                 AnimatePageIn(targetPage);
             }
         }
-
         private void OnToggleRail(object sender, RoutedEventArgs e)
         {
             IsRailExpanded = !IsRailExpanded;
@@ -240,9 +245,49 @@ namespace RefreshToAccess2
             try { } catch { }
             System.Diagnostics.Process.GetCurrentProcess().Kill();
         }
+        [System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Auto)]
+        private static extern IntPtr SendMessage(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
+
         private void OnSourceInitialized(object? sender, EventArgs e)
         {
             Helpers.TitleBarHelper.Apply(this);
+
+            var hwnd = new System.Windows.Interop.WindowInteropHelper(this).Handle;
+            var source = System.Windows.Interop.HwndSource.FromHwnd(hwnd);
+
+            // Force-hide keyboard cue indicators (focus rects + mnemonic underlines)
+            // WM_CHANGEUISTATE = 0x0127, UIS_SET = 1, UISF_HIDEFOCUS = 1, UISF_HIDEACCEL = 2
+            SendMessage(hwnd, 0x0127, (IntPtr)((0x0003 << 16) | 1), IntPtr.Zero);
+
+            // Intercept future attempts to show them
+            source?.AddHook(WndProc);
+        }
+
+        private static IntPtr WndProc(
+            IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+        {
+            // WM_UPDATEUISTATE = 0x0128
+            // Block UIS_CLEAR (action=2) which shows keyboard indicators
+            // Allow UIS_SET (action=1) which hides them
+            if (msg == 0x0128)
+            {
+                int action = wParam.ToInt32() & 0xFFFF;
+                if (action == 2) // UIS_CLEAR — trying to show indicators
+                    handled = true;
+            }
+            return IntPtr.Zero;
+        }
+
+        private void OnPreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            // Suppress bare Alt from activating menu navigation mode.
+            // Alt+F4, Alt+Tab etc. still work — they arrive as SystemKey=F4/Tab,
+            // not SystemKey=LeftAlt/RightAlt.
+            if (e.Key == Key.System &&
+                (e.SystemKey == Key.LeftAlt || e.SystemKey == Key.RightAlt))
+            {
+                e.Handled = true;
+            }
         }
         private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
