@@ -47,30 +47,37 @@ namespace RefreshToAccess2
         {
             try
             {
-                DirectoryInfo dogshit = new DirectoryInfo(
-                    Path.Combine(
-                        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                        "Temp\\.net"));
-                dogshit.Delete(true);
-            }
-            catch { }
 
-            DataContext = ViewModel;
-            InitializeComponent();
+                try
+                {
+                    DirectoryInfo dogshit = new DirectoryInfo(
+                        Path.Combine(
+                            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                            "Temp\\.net"));
+                    dogshit.Delete(true);
+                }
+                catch { }
 
-            _pages = new UIElement[]
-            {
+                DataContext = ViewModel;
+                InitializeComponent();
+
+                _pages = new UIElement[]
+                {
                 ConverterView,
                 AltManagerView,
                 IGNRenameView,
                 InjectorView,
                 SkinChangerView,
-            };
+                };
 
-            ShowPage(0);
-            NavListBox.SelectedIndex = 0;
+                ShowPage(0);
+                NavListBox.SelectedIndex = 0;
 
-            _ = InitialiseAsync();
+                _ = InitialiseAsync();
+            }
+            catch (Exception ex) { 
+                Helper.PopException(ex);
+            }
         }
 
         private void NavListBox_OnSelectionChanged(object sender, SelectionChangedEventArgs e)

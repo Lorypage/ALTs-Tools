@@ -11,8 +11,8 @@
     <AssemblyName>TokenTools</AssemblyName>
     <NoWin32Manifest>true</NoWin32Manifest>
     <ApplicationIcon>coolpig.ico</ApplicationIcon>
-    <AssemblyVersion>2.2</AssemblyVersion>
-    <FileVersion>2.2</FileVersion>
+    <AssemblyVersion>2.3</AssemblyVersion>
+    <FileVersion>2.3</FileVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

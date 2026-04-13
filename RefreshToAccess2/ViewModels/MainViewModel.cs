@@ -19,8 +19,7 @@ namespace RefreshToAccess2.ViewModels
         public MainViewModel()
         {
             var saved = ProfileService.Load();
-            TokenProfiles = new ObservableCollection<ProfileDataBlock>(saved);
-
+            TokenProfiles = new ObservableCollection<ProfileDataBlock>(ProfileService.Load() ?? new List<ProfileDataBlock>());
             Converter   = new TokenConverterViewModel();
             AltManager  = new AltManagerViewModel(TokenProfiles);
             IGNRename   = new IGNRenameViewModel(Converter);
