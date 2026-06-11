@@ -1,0 +1,214 @@
+<UserControl x:Class="RefreshToAccess2.Views.SettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:helpers="clr-namespace:RefreshToAccess2.Helpers"
+             xmlns:loc="clr-namespace:RefreshToAccess2.Localization"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="600" d:DesignWidth="800">
+
+    <UserControl.Resources>
+        <helpers:InvertBoolConverter x:Key="InvertBool"/>
+    </UserControl.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                  HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="36,24,36,28">
+
+            <!-- Header -->
+            <TextBlock Text="{loc:Tr Settings.Title}"
+                       Style="{StaticResource MaterialDesignHeadline5TextBlock}"
+                       Margin="0,0,0,4"/>
+            <TextBlock Text="{loc:Tr Settings.Subtitle}"
+                       FontSize="13"
+                       Opacity="0.58"
+                       Margin="0,0,0,24"/>
+
+            <!-- Language card -->
+            <md:Card md:ElevationAssist.Elevation="Dp1"
+                     UniformCornerRadius="14"
+                     Padding="20,18"
+                     HorizontalAlignment="Left"
+                     MinWidth="380"
+                     Margin="0,0,0,16">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                        <md:PackIcon Kind="Translate"
+                                     Width="20" Height="20"
+                                     VerticalAlignment="Center"
+                                     Opacity="0.6"
+                                     Margin="0,0,10,0"/>
+                        <TextBlock Text="{loc:Tr Settings.Language}"
+                                   FontSize="15"
+                                   FontWeight="SemiBold"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <TextBlock Text="{loc:Tr Settings.LanguageDesc}"
+                               FontSize="12"
+                               Opacity="0.55"
+                               Margin="0,0,0,14"/>
+
+                    <ComboBox md:HintAssist.Hint="{loc:Tr Settings.LanguageHint}"
+                              Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                              ItemsSource="{Binding AvailableLanguages}"
+                              SelectedItem="{Binding SelectedLanguage}"
+                              DisplayMemberPath="DisplayName"
+                              MinWidth="240"
+                              HorizontalAlignment="Left"/>
+                </StackPanel>
+            </md:Card>
+
+            <!-- Appearance card -->
+            <md:Card md:ElevationAssist.Elevation="Dp1"
+                     UniformCornerRadius="14"
+                     Padding="20,18"
+                     HorizontalAlignment="Left"
+                     MinWidth="380">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                        <md:PackIcon Kind="Palette"
+                                     Width="20" Height="20"
+                                     VerticalAlignment="Center"
+                                     Opacity="0.6"
+                                     Margin="0,0,10,0"/>
+                        <TextBlock Text="{loc:Tr Settings.Appearance}"
+                                   FontSize="15"
+                                   FontWeight="SemiBold"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <TextBlock Text="{loc:Tr Settings.AppearanceDesc}"
+                               FontSize="12"
+                               Opacity="0.55"
+                               Margin="0,0,0,16"/>
+
+                    <!-- Dark mode toggle -->
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,18">
+                        <md:PackIcon Kind="WeatherNight"
+                                     Width="18" Height="18"
+                                     VerticalAlignment="Center"
+                                     Opacity="0.6"
+                                     Margin="0,0,10,0"/>
+                        <TextBlock Text="{loc:Tr Settings.DarkMode}"
+                                   FontSize="13"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,14,0"/>
+                        <ToggleButton Style="{StaticResource MaterialDesignSwitchToggleButton}"
+                                      IsChecked="{Binding IsDarkMode}"
+                                      VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <!-- Dynamic color (Material You) -->
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,18"
+                                ToolTip="{loc:Tr Settings.DynamicTip}">
+                        <md:PackIcon Kind="Eyedropper"
+                                     Width="18" Height="18"
+                                     VerticalAlignment="Center"
+                                     Opacity="0.6"
+                                     Margin="0,0,10,0"/>
+                        <TextBlock Text="{loc:Tr Settings.Dynamic}"
+                                   FontSize="13"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,14,0"/>
+                        <ToggleButton Style="{StaticResource MaterialDesignSwitchToggleButton}"
+                                      IsChecked="{Binding IsDynamic}"
+                                      VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <!-- Accent color -->
+                    <TextBlock Text="{loc:Tr Settings.AccentColor}"
+                               FontSize="12"
+                               FontWeight="Medium"
+                               Opacity="0.6"
+                               Margin="0,0,0,10"/>
+
+                    <ListBox ItemsSource="{Binding AvailableAccents}"
+                             SelectedItem="{Binding SelectedAccent}"
+                             IsEnabled="{Binding IsDynamic, Converter={StaticResource InvertBool}}"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                             Background="Transparent"
+                             BorderThickness="0">
+                        <ListBox.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Orientation="Horizontal" MaxWidth="340"/>
+                            </ItemsPanelTemplate>
+                        </ListBox.ItemsPanel>
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem">
+                                <Setter Property="Margin" Value="0,0,10,10"/>
+                                <Setter Property="Padding" Value="0"/>
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="ListBoxItem">
+                                            <Grid Width="36" Height="36"
+                                                  ToolTip="{Binding Name}">
+                                                <!-- Selection ring -->
+                                                <Ellipse x:Name="Ring"
+                                                         Width="36" Height="36"
+                                                         Stroke="{Binding Hex}"
+                                                         StrokeThickness="2"
+                                                         Opacity="0"/>
+                                                <!-- Color swatch -->
+                                                <Ellipse Width="26" Height="26"
+                                                         Fill="{Binding Hex}"
+                                                         RenderTransformOrigin="0.5,0.5">
+                                                    <Ellipse.RenderTransform>
+                                                        <ScaleTransform x:Name="SwatchScale" ScaleX="1" ScaleY="1"/>
+                                                    </Ellipse.RenderTransform>
+                                                </Ellipse>
+                                                <!-- Check mark when selected -->
+                                                <md:PackIcon x:Name="Check"
+                                                             Kind="Check"
+                                                             Width="16" Height="16"
+                                                             Foreground="White"
+                                                             HorizontalAlignment="Center"
+                                                             VerticalAlignment="Center"
+                                                             Opacity="0"/>
+                                            </Grid>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsSelected" Value="True">
+                                                    <Setter TargetName="Ring" Property="Opacity" Value="1"/>
+                                                    <Setter TargetName="Check" Property="Opacity" Value="1"/>
+                                                </Trigger>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Trigger.EnterActions>
+                                                        <BeginStoryboard>
+                                                            <Storyboard>
+                                                                <DoubleAnimation Storyboard.TargetName="SwatchScale"
+                                                                                 Storyboard.TargetProperty="ScaleX"
+                                                                                 To="1.18" Duration="0:0:0.18"/>
+                                                                <DoubleAnimation Storyboard.TargetName="SwatchScale"
+                                                                                 Storyboard.TargetProperty="ScaleY"
+                                                                                 To="1.18" Duration="0:0:0.18"/>
+                                                            </Storyboard>
+                                                        </BeginStoryboard>
+                                                    </Trigger.EnterActions>
+                                                    <Trigger.ExitActions>
+                                                        <BeginStoryboard>
+                                                            <Storyboard>
+                                                                <DoubleAnimation Storyboard.TargetName="SwatchScale"
+                                                                                 Storyboard.TargetProperty="ScaleX"
+                                                                                 To="1" Duration="0:0:0.2"/>
+                                                                <DoubleAnimation Storyboard.TargetName="SwatchScale"
+                                                                                 Storyboard.TargetProperty="ScaleY"
+                                                                                 To="1" Duration="0:0:0.2"/>
+                                                            </Storyboard>
+                                                        </BeginStoryboard>
+                                                    </Trigger.ExitActions>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
+                    </ListBox>
+                </StackPanel>
+            </md:Card>
+
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>
