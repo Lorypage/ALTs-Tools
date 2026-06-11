@@ -1,3 +1,4 @@
+using RefreshToAccess2.Localization;
 using RefreshToAccess2.Services;
 using System;
 using System.Collections.Generic;
@@ -41,8 +42,8 @@ namespace RefreshToAccess2.Views.Inject
             catch (Exception ex)
             {
                 MessageBox.Show(
-                    $"Failed to enumerate Java processes:\n{ex.Message}",
-                    "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    Loc.T("ProcSel.Msg.EnumFailed", ex.Message),
+                    Loc.T("Common.Error"), MessageBoxButton.OK, MessageBoxImage.Error);
             }
 
             ProcComboBox.ItemsSource   = items;
@@ -60,8 +61,8 @@ namespace RefreshToAccess2.Views.Inject
             if (idx < 0 || idx >= _processes.Count)
             {
                 MessageBox.Show(
-                    "Please select a process from the list.",
-                    "Nothing selected",
+                    Loc.T("ProcSel.Msg.NothingSelected"),
+                    Loc.T("ProcSel.Msg.NothingSelectedTitle"),
                     MessageBoxButton.OK,
                     MessageBoxImage.Information);
                 return;
@@ -79,10 +80,8 @@ namespace RefreshToAccess2.Views.Inject
                 if (!ok)
                 {
                     MessageBox.Show(
-                        "DLL injection failed.\n" +
-                        "Make sure the target process has no anti-cheat " +
-                        "that blocks remote thread creation.",
-                        "Injection failed",
+                        Loc.T("ProcSel.Msg.InjectFailed"),
+                        Loc.T("ProcSel.Msg.InjectFailedTitle"),
                         MessageBoxButton.OK,
                         MessageBoxImage.Error);
                     return;
@@ -94,9 +93,8 @@ namespace RefreshToAccess2.Views.Inject
                 if (!TokenInjectionService.PidPortMap.ContainsKey(target.Id))
                 {
                     MessageBox.Show(
-                        "DLL was injected but has not reported back yet.\n" +
-                        "Try again in a moment.",
-                        "Not ready",
+                        Loc.T("ProcSel.Msg.NotReady"),
+                        Loc.T("ProcSel.Msg.NotReadyTitle"),
                         MessageBoxButton.OK,
                         MessageBoxImage.Warning);
                     return;

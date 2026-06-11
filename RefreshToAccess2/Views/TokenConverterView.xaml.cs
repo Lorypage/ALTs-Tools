@@ -39,6 +39,11 @@ namespace RefreshToAccess2.Views
         private void OnClearRefreshToken(object sender, RoutedEventArgs e)
             => VM.ClearRefreshToken();
 
+        // ── Token expiry check ─────────────────────────────────────────
+
+        private void OnCheckExpiry(object sender, RoutedEventArgs e)
+            => VM.CheckExpiry();
+
         // ── Access token ───────────────────────────────────────────────
 
         private void OnCopyAccessToken(object sender, RoutedEventArgs e)

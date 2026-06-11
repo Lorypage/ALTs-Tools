@@ -1,3 +1,4 @@
+using RefreshToAccess2.Localization;
 using RefreshToAccess2.Models;
 using RefreshToAccess2.Services;
 using System;
@@ -42,14 +43,17 @@ namespace RefreshToAccess2.ViewModels
         // ── Bindable properties ────────────────────────────────────────
         private string _refreshToken  = "";
         private string _accessToken   = "";
-        private string _profileName   = "Waiting for login…";
-        private string _playerUuid    = "Waiting for login…";
-        private string _statusMessage = "Ready";
+        private string _profileName   = Loc.T("Converter.WaitingLogin");
+        private string _playerUuid    = Loc.T("Converter.WaitingLogin");
+        private string _statusMessage = Loc.T("Converter.Ready");
         private bool   _isBusy;
         private bool   _loggedIn;
         private bool   _autoCopyToken = true;
         private int    _selectedClientIndex;
         private ClientIdentification _customClient = new("", "");
+        private int    _selectedModeIndex; // 0 = Refresh→Access, 1 = Cookie→Token
+        private string _expiryResult = Loc.T("Converter.Expiry.Idle");
+        private string _expiryInput  = "";
 
         public string RefreshToken
         {
@@ -115,7 +119,140 @@ namespace RefreshToAccess2.ViewModels
             set => SetField(ref _customClient, value);
         }
 
-        public string ConvertButtonText => IsBusy ? "Cancel" : "Convert";
+        /// <summary>0 = Refresh Token → Access Token, 1 = Cookie → Token.</summary>
+        public int SelectedModeIndex
+        {
+            get => _selectedModeIndex;
+            set
+            {
+                if (SetField(ref _selectedModeIndex, value))
+                {
+                    OnPropertyChanged(nameof(IsCookieMode));
+                    OnPropertyChanged(nameof(IsRefreshMode));
+                    OnPropertyChanged(nameof(InputSectionLabel));
+                    OnPropertyChanged(nameof(InputHint));
+                }
+            }
+        }
+
+        public bool IsCookieMode  => _selectedModeIndex == 1;
+        public bool IsRefreshMode => _selectedModeIndex == 0;
+
+        /// <summary>Section label for the shared input box, depending on mode.</summary>
+        public string InputSectionLabel =>
+            IsCookieMode ? Loc.T("Cookie.Section") : Loc.T("Converter.RefreshSection");
+
+        /// <summary>Hint for the shared input box, depending on mode.</summary>
+        public string InputHint =>
+            IsCookieMode ? Loc.T("Cookie.InputHint") : Loc.T("Converter.RefreshHint");
+
+        public string ConvertButtonText => IsBusy ? Loc.T("Converter.Cancel") : Loc.T("Converter.Convert");
+
+        /// <summary>Human-readable result of the most recent token-expiry check.</summary>
+        public string ExpiryResult
+        {
+            get => _expiryResult;
+            private set => SetField(ref _expiryResult, value);
+        }
+
+        /// <summary>Token/cookie text the user pastes into the expiry-check box.</summary>
+        public string ExpiryInput
+        {
+            get => _expiryInput;
+            set => SetField(ref _expiryInput, value);
+        }
+
+        /// <summary>
+        /// Converts a Microsoft login cookie into a Minecraft access token and
+        /// displays the result. Deliberately does NOT log in or add the result
+        /// to the Alt Manager — it only fills the display fields. Reads from the
+        /// shared input field (<see cref="RefreshToken"/>).
+        /// </summary>
+        public async Task ConvertCookieAsync(IProgress<string> progress)
+        {
+            if (IsBusy) return;
+
+            if (string.IsNullOrWhiteSpace(RefreshToken))
+            {
+                MessageBox.Show(
+                    Loc.T("Cookie.Msg.MissingInput"),
+                    Loc.T("Converter.Msg.MissingInputTitle"),
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            IsBusy = true;
+            try
+            {
+                string[] result = await CookieToTokenService.ConvertAsync(RefreshToken, progress);
+
+                // Display only — no LoggedIn flip, no OnProfileAdded invocation.
+                ProfileName = result[0];
+                PlayerUuid  = result[1];
+                AccessToken = result[2];
+
+                if (AutoCopyToken)
+                    Clipboard.SetText(AccessToken);
+
+                progress.Report(Loc.T("Cookie.Status.Done"));
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    Loc.T("Converter.Msg.SomethingWrong", ex.Message),
+                    Loc.T("Common.Error"), MessageBoxButton.OK, MessageBoxImage.Error);
+                progress.Report(Loc.T("Cookie.Status.Failed"));
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
+        /// <summary>
+        /// Inspects the text in the expiry-check box and reports its expiry,
+        /// trying a JWT first and then a Microsoft login cookie dump.
+        /// </summary>
+        public void CheckExpiry()
+        {
+            long? exp = Crypto.TokenExpiry.ParseTokenExp(ExpiryInput);
+            var info = Crypto.TokenExpiry.Describe(exp);
+
+            if (info is null)
+            {
+                ExpiryResult = Loc.T("Converter.Expiry.Unknown");
+                return;
+            }
+
+            var span = info.Remaining.Duration();
+            string value, unit;
+            if (span.TotalDays >= 1) { value = ((int)span.TotalDays).ToString(); unit = Loc.T("Converter.Expiry.Day"); }
+            else if (span.TotalHours >= 1) { value = ((int)span.TotalHours).ToString(); unit = Loc.T("Converter.Expiry.Hour"); }
+            else { value = Math.Max(1, (int)span.TotalMinutes).ToString(); unit = Loc.T("Converter.Expiry.Minute"); }
+
+            string rel = info.Expired
+                ? Loc.T("Converter.Expiry.Expired", value, unit)
+                : Loc.T("Converter.Expiry.Remaining", value, unit);
+
+            string abs = Loc.T("Converter.Expiry.At", info.ExpiryLocal.ToString("yyyy-MM-dd HH:mm"));
+            ExpiryResult = rel + "  " + abs;
+        }
+
+        /// <summary>Re-raises localized text properties after a language switch.</summary>
+        public void RefreshLocalizedText()
+        {
+            // Update placeholder text only while no profile has been loaded yet,
+            // so a logged-in player's real name/UUID are never overwritten.
+            if (!LoggedIn)
+            {
+                ProfileName = Loc.T("Converter.WaitingLogin");
+                PlayerUuid  = Loc.T("Converter.WaitingLogin");
+            }
+
+            OnPropertyChanged(nameof(ConvertButtonText));
+            OnPropertyChanged(nameof(InputSectionLabel));
+            OnPropertyChanged(nameof(InputHint));
+        }
 
         // ── Cancellation ───────────────────────────────────────────────
         private bool _cancelRequested;
@@ -133,8 +270,15 @@ namespace RefreshToAccess2.ViewModels
             if (string.IsNullOrWhiteSpace(RefreshToken))
             {
                 MessageBox.Show(
-                    "Please paste your refresh token first.",
-                    "Missing input", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    Loc.T("Converter.Msg.MissingInput"),
+                    Loc.T("Converter.Msg.MissingInputTitle"), MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            // Cookie → Token mode: display-only, no login, no Alt Manager.
+            if (IsCookieMode)
+            {
+                await ConvertCookieAsync(progress);
                 return;
             }
 
@@ -179,41 +323,38 @@ namespace RefreshToAccess2.ViewModels
                 // Notify root VM so it can persist + reload the alt list
                 OnProfileAdded?.Invoke(block);
 
-                string summary =
-                    $"Successfully logged in\n" +
-                    $"Player name : {ProfileName}\n" +
-                    $"UUID        : {PlayerUuid}";
+                string summary = Loc.T("Converter.Msg.Summary", ProfileName, PlayerUuid);
 
                 if (AutoCopyToken)
-                    summary += "\n\nAccess token copied to clipboard.";
+                    summary += Loc.T("Converter.Msg.SummaryCopied");
 
-                MessageBox.Show(summary, "Success",
+                MessageBox.Show(summary, Loc.T("Common.Success"),
                     MessageBoxButton.OK, MessageBoxImage.Information);
 
-                progress.Report("Login successful");
+                progress.Report(Loc.T("Converter.Status.LoginSuccess"));
             }
             catch (OperationCanceledException)
             {
-                progress.Report("Cancelled");
+                progress.Report(Loc.T("Converter.Status.Cancelled"));
             }
             catch (Exception ex)
             {
                 string friendly = ex.Message switch
                 {
                     var m when m.Contains("400") =>
-                        "Wrong token format or expired – check with your alt seller.",
+                        Loc.T("Converter.Msg.Error400"),
                     var m when m.Contains("429") =>
-                        "Too many requests – wait a moment or switch VPN node.",
+                        Loc.T("Converter.Msg.Error429"),
                     var m when m.Contains("502") =>
-                        "Network error connecting to Microsoft services.",
+                        Loc.T("Converter.Msg.Error502"),
                     _ => ex.Message
                 };
 
                 MessageBox.Show(
-                    $"Something went wrong:\n\n{friendly}",
-                    "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    Loc.T("Converter.Msg.SomethingWrong", friendly),
+                    Loc.T("Common.Error"), MessageBoxButton.OK, MessageBoxImage.Error);
 
-                progress.Report("Login failed");
+                progress.Report(Loc.T("Converter.Status.LoginFailed"));
             }
             finally
             {
@@ -244,7 +385,7 @@ namespace RefreshToAccess2.ViewModels
         {
             if (string.IsNullOrEmpty(RefreshToken)) return;
             if (MessageBox.Show(
-                    "Clear the current refresh token?", "Confirm",
+                    Loc.T("Converter.Msg.ClearRefresh"), Loc.T("Common.Confirm"),
                     MessageBoxButton.YesNo, MessageBoxImage.Question)
                 == MessageBoxResult.Yes)
                 RefreshToken = "";
@@ -254,7 +395,7 @@ namespace RefreshToAccess2.ViewModels
         {
             if (string.IsNullOrEmpty(AccessToken)) return;
             if (MessageBox.Show(
-                    "Clear the current access token?", "Confirm",
+                    Loc.T("Converter.Msg.ClearAccess"), Loc.T("Common.Confirm"),
                     MessageBoxButton.YesNo, MessageBoxImage.Question)
                 == MessageBoxResult.Yes)
                 AccessToken = "";
@@ -270,7 +411,7 @@ namespace RefreshToAccess2.ViewModels
             if (!string.IsNullOrEmpty(RefreshToken))
             {
                 if (MessageBox.Show(
-                        "Override the current refresh token?", "Confirm",
+                        Loc.T("Converter.Msg.OverrideRefresh"), Loc.T("Common.Confirm"),
                         MessageBoxButton.YesNo, MessageBoxImage.Question)
                     != MessageBoxResult.Yes) return;
             }
@@ -278,8 +419,7 @@ namespace RefreshToAccess2.ViewModels
             if (!looksValid)
             {
                 if (MessageBox.Show(
-                        "The clipboard text doesn't look like a valid refresh token.\n" +
-                        "Paste it anyway?", "Warning",
+                        Loc.T("Converter.Msg.NotLikeToken"), Loc.T("Common.Warning"),
                         MessageBoxButton.YesNo, MessageBoxImage.Warning)
                     != MessageBoxResult.Yes) return;
             }
@@ -294,8 +434,7 @@ namespace RefreshToAccess2.ViewModels
             {
                 if (string.IsNullOrEmpty(CustomClient.ClientId))
                     throw new Exception(
-                        "Custom client ID is not configured. " +
-                        "Click the ⚙ button next to the combo box.");
+                        Loc.T("Converter.Msg.CustomNotConfigured"));
                 return CustomClient;
             }
 

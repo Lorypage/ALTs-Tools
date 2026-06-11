@@ -86,7 +86,9 @@ namespace RefreshToAccess2
 
         public static void PopException(Exception exception)
         {
-            MessageBox.Show("An exception occurred:\nMessage: "+exception.Message+"\n\nSource: "+exception.Source+"\n\nStackTrace: "+exception.StackTrace+"\n\nInnerException: "+exception.InnerException+"\n\nTargetSite: "+exception.TargetSite);
+            MessageBox.Show(RefreshToAccess2.Localization.Loc.T("Helper.Exception",
+                exception.Message, exception.Source ?? "", exception.StackTrace ?? "",
+                exception.InnerException?.ToString() ?? "", exception.TargetSite?.ToString() ?? ""));
         }
     }
 }

@@ -1,4 +1,5 @@
 using RefreshToAccess2.Crypto;
+using RefreshToAccess2.Localization;
 using RefreshToAccess2.Models;
 using RefreshToAccess2.Services;
 using RefreshToAccess2.ViewModels;
@@ -32,8 +33,8 @@ namespace RefreshToAccess2.Views.Dialogs
             if (string.IsNullOrEmpty(id) || string.IsNullOrEmpty(scope))
             {
                 MessageBox.Show(
-                    "Both Client ID and Scope must be filled in.",
-                    "Incomplete",
+                    Loc.T("CustomClient.Msg.Incomplete"),
+                    Loc.T("CustomClient.Msg.IncompleteTitle"),
                     MessageBoxButton.OK,
                     MessageBoxImage.Warning);
                 return;

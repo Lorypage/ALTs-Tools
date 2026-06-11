@@ -1,4 +1,5 @@
 using Newtonsoft.Json.Linq;
+using RefreshToAccess2.Localization;
 using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -36,24 +37,22 @@ namespace RefreshToAccess2.Services
                     return; // success
 
                 case 401:
-                    throw new Exception("Invalid or expired access token.");
+                    throw new Exception(Loc.T("RenameSvc.InvalidToken"));
 
                 case 429:
-                    throw new Exception(
-                        "You are changing your name too often – wait a moment and try again.");
+                    throw new Exception(Loc.T("RenameSvc.TooOften"));
 
                 case 400:
-                    throw new Exception("Invalid name format.");
+                    throw new Exception(Loc.T("RenameSvc.InvalidFormat"));
 
                 default:
                     if (body.Contains("FORBIDDEN"))
-                        throw new Exception(
-                            "You must wait 30 days before changing your name again.");
+                        throw new Exception(Loc.T("RenameSvc.Wait30Days"));
                     if (body.Contains("DUPLICATE"))
-                        throw new Exception("That name is already taken.");
+                        throw new Exception(Loc.T("RenameSvc.Taken"));
                     if (body.Contains("NOT_ALLOWED"))
-                        throw new Exception("That name is not allowed.");
-                    throw new Exception($"Unexpected response ({code}): {body}");
+                        throw new Exception(Loc.T("RenameSvc.NotAllowed"));
+                    throw new Exception(Loc.T("RenameSvc.Unexpected", code, body));
             }
         }
     }

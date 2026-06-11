@@ -1,4 +1,5 @@
 using Newtonsoft.Json.Linq;
+using RefreshToAccess2.Localization;
 using RefreshToAccess2.Models;
 using System;
 using System.Collections.Generic;
@@ -29,20 +30,20 @@ namespace RefreshToAccess2.Services
             ClientIdentification client,
             IProgress<string>? progress = null)
         {
-            progress?.Report("Getting Microsoft token…");
+            progress?.Report(Loc.T("Login.MsToken"));
             string msToken = await GetMicrosoftTokenAsync(refreshToken, client);
 
-            progress?.Report("Getting Xbox Live token…");
+            progress?.Report(Loc.T("Login.XblToken"));
             bool useDPrefix = client.Scope != ClientIdentification.Vanilla.Scope;
             string xblToken = await GetXboxLiveTokenAsync(msToken, useDPrefix);
 
-            progress?.Report("Getting XSTS token…");
+            progress?.Report(Loc.T("Login.XstsToken"));
             (string xstsToken, string userHash) = await GetXstsTokenAsync(xblToken);
 
-            progress?.Report("Getting access token…");
+            progress?.Report(Loc.T("Login.AccessToken"));
             string accessToken = await GetAccessTokenAsync(userHash, xstsToken);
 
-            progress?.Report("Getting player profile…");
+            progress?.Report(Loc.T("Login.Profile"));
             (string uuid, string name) = await GetProfileAsync(accessToken);
 
             return new[] { name, uuid, accessToken };

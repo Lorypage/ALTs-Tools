@@ -2,8 +2,10 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:helpers="clr-namespace:RefreshToAccess2.Helpers"
+        xmlns:loc="clr-namespace:RefreshToAccess2.Localization"
         Style="{StaticResource MaterialDesignWindow}"
-        Title="Custom Client ID"
+        Title="{loc:Tr CustomClient.Title}"
         Width="540" Height="320" SizeToContent="Height"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
@@ -11,31 +13,32 @@
 
     <StackPanel Margin="28">
 
-        <TextBlock Text="Custom Client ID"
+        <TextBlock Text="{loc:Tr CustomClient.Title}"
                    Style="{StaticResource MaterialDesignHeadline6TextBlock}"
                    Margin="0,0,0,20"/>
 
         <TextBox x:Name="ClientIdBox"
                  Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                 md:HintAssist.Hint="Client ID"
+                 md:HintAssist.Hint="{loc:Tr CustomClient.ClientId}"
                  FontFamily="Consolas"
                  Margin="0,0,0,16"/>
 
         <TextBox x:Name="ScopeBox"
                  Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                 md:HintAssist.Hint="Scope"
+                 md:HintAssist.Hint="{loc:Tr CustomClient.Scope}"
                  FontFamily="Consolas"
                  Margin="0,0,0,24"/>
 
         <StackPanel Orientation="Horizontal"
                     HorizontalAlignment="Right">
-            <Button Content="Cancel"
+            <Button Content="{loc:Tr Common.Cancel}"
                     Style="{StaticResource MaterialDesignOutlinedButton}"
                     Width="100" Height="38"
                     Margin="0,0,12,0"
                     Click="OnCancel"/>
-            <Button Content="Confirm"
+            <Button Content="{loc:Tr Common.Confirm}"
                     Width="100" Height="38"
+                    helpers:InteractionAnimation.Pop="True"
                     Click="OnConfirm"/>
         </StackPanel>
     </StackPanel>

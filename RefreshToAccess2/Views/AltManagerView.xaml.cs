@@ -1,5 +1,6 @@
 using MaterialDesignThemes.Wpf;
 using Microsoft.Win32;
+using RefreshToAccess2.Localization;
 using RefreshToAccess2.Models;
 using RefreshToAccess2.Services;
 using RefreshToAccess2.ViewModels;
@@ -287,7 +288,7 @@ namespace RefreshToAccess2.Views
                 _ => null
             };
             if (string.IsNullOrEmpty(v) || v == "N/A")
-            { _snack.Enqueue("Field is empty"); return; }
+            { _snack.Enqueue(Loc.T("AltMgr.FieldEmpty")); return; }
             Copy(v, f);
         }
 
@@ -295,9 +296,8 @@ namespace RefreshToAccess2.Views
         {
             if (VM?.DetailItem is null) return;
             var d = VM.DetailItem;
-            Copy($"IGN: {d.IGN}\nUUID: {d.UUID}\nClient ID: {d.ClientId}\n" +
-                 $"Refresh Token: {d.RefToken}\nAccess Token: {d.AccToken}\n" +
-                 $"Login Date: {d.LoginDate}", "All fields");
+            Copy(Loc.T("AltMgr.CopyAllBody", d.IGN, d.UUID, d.ClientId, d.RefToken, d.AccToken, d.LoginDate),
+                 Loc.T("AltMgr.CopyAll"));
         }
 
         private async void OnDetailRefresh(object sender, RoutedEventArgs e)
@@ -308,7 +308,7 @@ namespace RefreshToAccess2.Views
             var card = VM.DetailItem;
 
             if (string.IsNullOrEmpty(rf) || rf == "N/A")
-            { _snack.Enqueue("No refresh token"); return; }
+            { _snack.Enqueue(Loc.T("AltMgr.NoRefreshToken")); return; }
 
             CloseDetail();
             await Dispatcher.InvokeAsync(() => { },
@@ -334,11 +334,11 @@ namespace RefreshToAccess2.Views
         private async void OnRefreshAllHeads(object sender, RoutedEventArgs e)
         {
             if (VM is null) return;
-            _snack.Enqueue("Refreshing all head skins…");
+            _snack.Enqueue(Loc.T("AltMgr.RefreshingHeads"));
             var items = VM.DisplayItems.ToList();
             var tasks = items.Select(i => i.RefreshHeadAsync()).ToList();
             await Task.WhenAll(tasks);
-            _snack.Enqueue($"✓ Refreshed {items.Count} head(s)");
+            _snack.Enqueue(Loc.T("AltMgr.RefreshedHeads", items.Count));
         }
 
         // ══════════════════════════════════════════════════════════
@@ -358,7 +358,7 @@ namespace RefreshToAccess2.Views
         {
             if (VM is null) return;
             var sel = VM.SelectedProfiles();
-            if (sel.Count == 0) { _snack.Enqueue("Nothing selected"); return; }
+            if (sel.Count == 0) { _snack.Enqueue(Loc.T("AltMgr.NothingSelected")); return; }
             DoExport(sel, $"selected_{DateTime.Now:yyyyMMdd_HHmmss}.tapf");
         }
 
@@ -366,7 +366,7 @@ namespace RefreshToAccess2.Views
         {
             if (VM is null) return;
             var all = VM.AllProfiles();
-            if (all.Count == 0) { _snack.Enqueue("No accounts to export"); return; }
+            if (all.Count == 0) { _snack.Enqueue(Loc.T("AltMgr.NoAccountsToExport")); return; }
             DoExport(all, $"alts_{DateTime.Now:yyyyMMdd_HHmmss}.tapf");
         }
 
@@ -374,18 +374,18 @@ namespace RefreshToAccess2.Views
         {
             var dlg = new SaveFileDialog
             {
-                Title = "Export alt profiles", DefaultExt = ".tapf",
+                Title = Loc.T("AltMgr.ExportTitle"), DefaultExt = ".tapf",
                 Filter = "Token Alt Profile Files (*.tapf)|*.tapf", FileName = name
             };
             if (dlg.ShowDialog() != true) return;
             try
             {
                 File.WriteAllBytes(dlg.FileName, ProfileService.ExportToBytes(list));
-                _snack.Enqueue($"✓ Exported {list.Count} profile(s)");
+                _snack.Enqueue(Loc.T("AltMgr.Exported", list.Count));
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Export failed:\n{ex.Message}", "Error",
+                MessageBox.Show(Loc.T("AltMgr.ExportFailed", ex.Message), Loc.T("Common.Error"),
                     MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
@@ -395,7 +395,7 @@ namespace RefreshToAccess2.Views
             if (VM is null || RootVM is null) return;
             var dlg = new OpenFileDialog
             {
-                Title = "Import alt profiles", DefaultExt = ".tapf",
+                Title = Loc.T("AltMgr.ImportTitle"), DefaultExt = ".tapf",
                 Filter = "Token Alt Profile Files (*.tapf)|*.tapf"
             };
             if (dlg.ShowDialog() != true) return;
@@ -403,11 +403,11 @@ namespace RefreshToAccess2.Views
             {
                 var imported = ProfileService.ImportFromBytes(File.ReadAllBytes(dlg.FileName));
                 if (imported is null || imported.Count == 0)
-                { _snack.Enqueue("File had no valid profiles"); return; }
+                { _snack.Enqueue(Loc.T("AltMgr.NoValidProfiles")); return; }
 
                 var choice = MessageBox.Show(
-                    $"Found {imported.Count} profile(s).\n\nYES → Merge\nNO → Replace",
-                    "Import mode", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
+                    Loc.T("AltMgr.ImportMode", imported.Count),
+                    Loc.T("AltMgr.ImportModeTitle"), MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
                 if (choice == MessageBoxResult.Cancel) return;
                 if (choice == MessageBoxResult.No) RootVM.TokenProfiles.Clear();
 
@@ -417,11 +417,11 @@ namespace RefreshToAccess2.Views
                 foreach (var b in dd) RootVM.TokenProfiles.Add(b);
 
                 VM.Save();
-                _snack.Enqueue($"✓ Imported {imported.Count} profile(s)");
+                _snack.Enqueue(Loc.T("AltMgr.Imported", imported.Count));
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Import failed:\n{ex.Message}", "Error",
+                MessageBox.Show(Loc.T("AltMgr.ImportFailed", ex.Message), Loc.T("Common.Error"),
                     MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
@@ -430,8 +430,8 @@ namespace RefreshToAccess2.Views
 
         private void Copy(string val, string label)
         {
-            try { Clipboard.SetText(val); _snack.Enqueue($"✓ Copied {label}"); }
-            catch { _snack.Enqueue("Clipboard error"); }
+            try { Clipboard.SetText(val); _snack.Enqueue(Loc.T("AltMgr.Copied", label)); }
+            catch { _snack.Enqueue(Loc.T("AltMgr.ClipboardError")); }
         }
 
         private static int CidToIdx(string? n)

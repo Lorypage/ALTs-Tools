@@ -43,13 +43,29 @@ namespace RefreshToAccess2.Helpers
                 item.Loaded += OnLoaded;
                 item.Selected += OnSelected;
                 item.Unselected += OnUnselected;
+                item.MouseEnter += OnHoverEnter;
+                item.MouseLeave += OnHoverLeave;
             }
             else
             {
                 item.Loaded -= OnLoaded;
                 item.Selected -= OnSelected;
                 item.Unselected -= OnUnselected;
+                item.MouseEnter -= OnHoverEnter;
+                item.MouseLeave -= OnHoverLeave;
             }
+        }
+
+        private static void OnHoverEnter(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            if (sender is ListBoxItem { IsSelected: false } item)
+                HoverIcon(item, true);
+        }
+
+        private static void OnHoverLeave(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            if (sender is ListBoxItem { IsSelected: false } item)
+                HoverIcon(item, false);
         }
 
         private static void OnLoaded(object sender, RoutedEventArgs e)
@@ -78,6 +94,7 @@ namespace RefreshToAccess2.Helpers
                     if (p == null) return;
                     HoldOpacity(p);
                     AnimateScale(item, p, true);
+                    BounceIcon(item);
                 }));
         }
 
@@ -194,6 +211,114 @@ namespace RefreshToAccess2.Helpers
         {
             scale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
             scale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+        }
+
+        // ── Icon animations (selection bounce + hover reaction) ─────
+
+        // Ensures the icon carries a centered TransformGroup [Scale, Rotate]
+        // and returns the two transforms.
+        private static (ScaleTransform scale, RotateTransform rotate) EnsureIconTransform(
+            FrameworkElement icon)
+        {
+            if (icon.RenderTransform is TransformGroup g &&
+                g.Children.Count == 2 &&
+                g.Children[0] is ScaleTransform es &&
+                g.Children[1] is RotateTransform er)
+                return (es, er);
+
+            var scale = new ScaleTransform(1, 1);
+            var rotate = new RotateTransform(0);
+            var group = new TransformGroup();
+            group.Children.Add(scale);
+            group.Children.Add(rotate);
+            icon.RenderTransform = group;
+            icon.RenderTransformOrigin = new System.Windows.Point(0.5, 0.5);
+            return (scale, rotate);
+        }
+
+        private static void BounceIcon(ListBoxItem item)
+        {
+            var icon = FindIcon(item);
+            if (icon == null) return;
+
+            var (scale, rotate) = EnsureIconTransform(icon);
+
+            scale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
+            scale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+            rotate.BeginAnimation(RotateTransform.AngleProperty, null);
+
+            var pop = new BackEase { EasingMode = EasingMode.EaseOut, Amplitude = 0.7 };
+            var dur = TimeSpan.FromMilliseconds(460);
+
+            // Springy scale pop from a shrunk state.
+            var sx = new DoubleAnimation(0.55, 1, dur) { EasingFunction = pop };
+            var sy = new DoubleAnimation(0.55, 1, dur) { EasingFunction = pop };
+            sx.Completed += (_, __) =>
+            {
+                scale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
+                scale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+                scale.ScaleX = 1; scale.ScaleY = 1;
+            };
+
+            // Quick wiggle: swing one way then settle back to 0.
+            var wiggle = new DoubleAnimationUsingKeyFrames
+            {
+                Duration = TimeSpan.FromMilliseconds(500)
+            };
+            wiggle.KeyFrames.Add(new EasingDoubleKeyFrame(-14,
+                KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(120)),
+                new CubicEase { EasingMode = EasingMode.EaseOut }));
+            wiggle.KeyFrames.Add(new EasingDoubleKeyFrame(8,
+                KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(280)),
+                new CubicEase { EasingMode = EasingMode.EaseInOut }));
+            wiggle.KeyFrames.Add(new EasingDoubleKeyFrame(0,
+                KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(500)),
+                new BackEase { EasingMode = EasingMode.EaseOut, Amplitude = 0.5 }));
+            wiggle.Completed += (_, __) =>
+            {
+                rotate.BeginAnimation(RotateTransform.AngleProperty, null);
+                rotate.Angle = 0;
+            };
+
+            scale.BeginAnimation(ScaleTransform.ScaleXProperty, sx);
+            scale.BeginAnimation(ScaleTransform.ScaleYProperty, sy);
+            rotate.BeginAnimation(RotateTransform.AngleProperty, wiggle);
+        }
+
+        // Subtle grow on hover; only when the item is not the selected one
+        // (selected items already sit at full prominence).
+        private static void HoverIcon(ListBoxItem item, bool entering)
+        {
+            var icon = FindIcon(item);
+            if (icon == null) return;
+
+            var (scale, _) = EnsureIconTransform(icon);
+            scale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
+            scale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+
+            double target = entering ? 1.22 : 1.0;
+            var ease = entering
+                ? (IEasingFunction)new BackEase { EasingMode = EasingMode.EaseOut, Amplitude = 0.6 }
+                : new CubicEase { EasingMode = EasingMode.EaseOut };
+            var dur = TimeSpan.FromMilliseconds(entering ? 240 : 260);
+
+            var sx = new DoubleAnimation(target, dur) { EasingFunction = ease };
+            var sy = new DoubleAnimation(target, dur) { EasingFunction = ease };
+            scale.BeginAnimation(ScaleTransform.ScaleXProperty, sx);
+            scale.BeginAnimation(ScaleTransform.ScaleYProperty, sy);
+        }
+
+        private static MaterialDesignThemes.Wpf.PackIcon? FindIcon(DependencyObject parent)
+        {
+            int count = VisualTreeHelper.GetChildrenCount(parent);
+            for (int i = 0; i < count; i++)
+            {
+                var child = VisualTreeHelper.GetChild(parent, i);
+                if (child is MaterialDesignThemes.Wpf.PackIcon icon) return icon;
+                var found = FindIcon(child);
+                if (found != null) return found;
+            }
+            return null;
         }
 
         // ── Helpers ────────────────────────────────────────────────

@@ -65,9 +65,9 @@ namespace RefreshToAccess2
                 {
                 ConverterView,
                 AltManagerView,
-                IGNRenameView,
                 InjectorView,
                 SkinChangerView,
+                SettingsView,
                 };
 
                 ShowPage(0);
@@ -89,28 +89,6 @@ namespace RefreshToAccess2
                 return;
 
             int index = NavListBox.SelectedIndex;
-
-            // Only Renamer requires login.
-            if (index == 2 && !ViewModel.Converter.LoggedIn)
-            {
-                MessageBox.Show(
-                    "Please convert a refresh token first before using this feature.",
-                    "Not logged in",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information);
-
-                try
-                {
-                    _suppressSelectionChanged = true;
-                    NavListBox.SelectedIndex = ViewModel.SelectedNavIndex;
-                }
-                finally
-                {
-                    _suppressSelectionChanged = false;
-                }
-
-                return;
-            }
 
             ViewModel.SelectedNavIndex = index;
             ShowPage(index);
@@ -231,9 +209,8 @@ namespace RefreshToAccess2
             {
                 Dispatcher.Invoke(() =>
                     MessageBox.Show(
-                        "Failed to initialise the token injection listener.\n" +
-                        "Make sure only one instance of this program is running.",
-                        "Injection init failed",
+                        Localization.Loc.T("Main.Msg.ListenerFailed"),
+                        Localization.Loc.T("Main.Msg.ListenerFailedTitle"),
                         MessageBoxButton.OK,
                         MessageBoxImage.Warning));
             }

@@ -14,6 +14,12 @@ namespace RefreshToAccess2
 
         protected override void OnStartup(StartupEventArgs e)
         {
+            // Resolve the saved/preferred UI language before any window renders.
+            Localization.LocalizationManager.Instance.Initialize();
+
+            // Apply the saved appearance (light/dark + accent color).
+            Theming.ThemeManager.Instance.Initialize();
+
             // Global exception handlers — prevent silent crashes
             DispatcherUnhandledException += OnDispatcherUnhandled;
             AppDomain.CurrentDomain.UnhandledException += OnDomainUnhandled;
@@ -62,10 +68,8 @@ namespace RefreshToAccess2
             try
             {
                 MessageBox.Show(
-                    $"An unexpected error occurred:\n\n" +
-                    $"{ex.Message}\n\n" +
-                    $"Details have been written to:\n{_logPath}",
-                    "Token Tools — Error",
+                    Localization.Loc.T("App.Crash", ex.Message, _logPath),
+                    Localization.Loc.T("App.CrashTitle"),
                     MessageBoxButton.OK,
                     MessageBoxImage.Error);
             }

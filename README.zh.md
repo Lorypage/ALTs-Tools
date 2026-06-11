@@ -8,7 +8,7 @@
 
 #### 更优雅的 Minecraft 多账号（ALT）管理工具
 
-<p>一站式完成 <b>令牌转换</b> · <b>账号管理</b> · <b>改名</b> · <b>注入</b> · <b>皮肤更换</b></p>
+<p>一站式完成 <b>令牌转换</b> · <b>账号管理</b> · <b>注入</b> · <b>玩家档案（皮肤 &amp; 改名）</b> · <b>多语言</b></p>
 
 <br/>
 
@@ -16,7 +16,7 @@
 <img src="https://img.shields.io/badge/platform-Windows%2010%20%7C%2011-0078D6.svg?style=flat-square&logo=windows&logoColor=white" alt="platform"/>
 <img src="https://img.shields.io/badge/.NET-8.0--windows-512BD4.svg?style=flat-square&logo=dotnet&logoColor=white" alt=".NET 8"/>
 <img src="https://img.shields.io/badge/UI-WPF%20·%20MaterialDesign-2D7D9A.svg?style=flat-square" alt="UI"/>
-<img src="https://img.shields.io/badge/version-2.3-blue.svg?style=flat-square" alt="version"/>
+<img src="https://img.shields.io/badge/version-1.0-blue.svg?style=flat-square" alt="version"/>
 
 <br/>
 <br/>
@@ -37,11 +37,11 @@
 
 ## ✨ 这是什么
 
-**ALTs Tools**（程序内名为 *Token Tools For Minecraft*）是一款为 Minecraft 玩家打造的多账号（ALT）一体化管理工具。
+**ALTs Tools** 是一款为 Minecraft 玩家打造的多账号（ALT）一体化管理工具。
 
-把一串 Refresh Token 丢进来，它会帮你换成可用的 Access Token、登录账号、把档案整理成漂亮的卡片，还能直接给正在运行的游戏「换上」这个账号，甚至顺手把皮肤也换了。
+把一串 Refresh Token（或一段微软登录 Cookie）丢进来，它会帮你换成可用的 Access Token、登录账号、把档案整理成漂亮的卡片，还能直接给正在运行的游戏「换上」这个账号，并顺手管理玩家档案——皮肤和游戏内昵称。
 
-整个界面基于 **WPF + .NET 8**，采用 **MaterialDesign** 主题，配上会缓缓流动的 **Minecraft 全景背景** 与流畅的导航动画 —— 既好看，又顺手。
+整个界面基于 **WPF + .NET 8**，采用 **MaterialDesign** 主题，配上会缓缓流动的 **Minecraft 全景背景**、活泼的交互动画，以及可运行时切换的 **中英双语** 本地化 —— 既好看，又顺手。
 
 > [!WARNING]
 > 仅供学习交流与个人账号管理使用。请勿用于任何违反 Minecraft / Mojang / Microsoft 服务条款的行为，使用风险自负。
@@ -57,10 +57,13 @@
 ### 🔑 Converter · 令牌转换
 把 **Refresh Token** 一键换成 **Access Token** 并完成登录。
 
+- 两种可切换模式：**刷新令牌 → 访问令牌** 与 **Cookie → 令牌**
+  （转换微软登录 Cookie，不登录、不入库）
 - 内置多种启动器客户端身份：
   `Vanilla` · `HMCL` · `PCL` · `Essential` ·
   `ksyz Alt Manager` · `BakaXL` · `LabyMod` 等
 - 支持 **自定义 Client ID**
+- 内置 **令牌时效检查**（解析 JWT 或 Cookie 过期时间）
 - 可选 **自动复制** 转换后的令牌
 - 实时显示玩家名与 UUID
 
@@ -81,12 +84,11 @@
 <tr>
 <td width="50%" valign="top">
 
-### ✏️ Renamer · 游戏内改名
-直接修改游戏内昵称（IGN）。
+### ⚙️ Settings · 设置
+让这个工具更合你心意。
 
-- 调用官方 Minecraft 接口改名
-- 需先在 Converter 完成登录
-- 改名结果即时反馈
+- 在 **English / 简体中文** 之间切换界面语言——即时生效，无需重启
+- 偏好设置跨启动记忆
 
 </td>
 <td width="50%" valign="top">
@@ -103,11 +105,12 @@
 <tr>
 <td colspan="2" valign="top">
 
-### 🎨 Skin Changer · 皮肤更换
-在线预览并更换皮肤，所见即所得。
+### 🎨 Player Profile · 玩家档案
+管理账号的昵称与皮肤，并预览其他玩家，所见即所得。
 
 - **3D 皮肤实时预览**（基于 Direct3D 渲染） · 支持 `Classic` / `Slim` 两种模型
 - 可按 **玩家名** 查询并套用他人皮肤 · 多套 Minecraft 版本全景背景任意切换
+- 直接在此 **修改游戏内昵称（IGN）**，调用官方 Minecraft 接口（无需单独页面）
 
 </td>
 </tr>
@@ -136,19 +139,19 @@
 <td align="center" width="50%">
 <img src="img/screenshots/Alt%20manager1.png" alt="Alt Manager 卡片视图" width="100%"/>
 <br/><b>🗂️ Alt Manager · 卡片视图</b>
-<br/><sub>头像墙一目了然，支持搜索与导入</sub>
+<br/><sub>账户一目了然，支持搜索与导入</sub>
 </td>
 <td align="center" width="50%">
 <img src="img/screenshots/Alt%20manager2.png" alt="Alt Manager 列表视图" width="100%"/>
 <br/><b>🗂️ Alt Manager · 列表视图</b>
-<br/><sub>一键切换，紧凑展示更多账号</sub>
+<br/><sub>一键切换风格</sub>
 </td>
 </tr>
 <tr>
 <td align="center" width="50%">
-<img src="img/screenshots/Rename.png" alt="Renamer" width="100%"/>
-<br/><b>✏️ Renamer · 游戏内改名</b>
-<br/><sub>输入新昵称即可一键改名</sub>
+<img src="img/screenshots/Player%20Profile.png" alt="Player Profile" width=100%"/>
+<br/><b>🎨 Player Profile · 玩家档案</b>
+<br/><sub>Minecraft 3D 实时皮肤预览，可按玩家名查询套用，并支持一键改名</sub>
 </td>
 <td align="center" width="50%">
 <img src="img/screenshots/Token%20injector.png" alt="Token Injector" width="100%"/>
@@ -157,13 +160,7 @@
 </td>
 </tr>
 </table>
-
 <br/>
-
-<img src="img/screenshots/skin%20changer.png" alt="Skin Changer" width="80%"/>
-<br/><b>🎨 Skin Changer · 皮肤更换</b>
-<br/><sub>带 Minecraft 全景背景的 3D 实时皮肤预览，可按玩家名查询并套用</sub>
-
 </div>
 
 ---
@@ -205,11 +202,11 @@ RefreshToAccess2/bin/Release/net8.0-windows/
 
 ## 🧭 快速上手
 
-1. 打开 **Converter**，粘贴 Refresh Token，选择对应客户端，点击转换完成登录。
+1. 打开 **Converter**，粘贴 Refresh Token（或切换到 *Cookie → 令牌* 模式），选择对应客户端，点击转换完成登录；也可在此检查令牌时效。
 2. 在 **Alt Manager** 中查看、搜索、整理你的所有账号。
-3. 需要改名时进入 **Renamer**（需已在 Converter 登录）。
-4. 启动 Minecraft 后，在 **Injector** 中把账号注入游戏进程，免重启切换。
-5. 在 **Skin Changer** 中预览并更换皮肤。
+3. 启动 Minecraft 后，在 **Injector** 中把账号注入游戏进程，免重启切换。
+4. 在 **Player Profile** 中预览并更换皮肤、查询其他玩家、修改游戏内昵称（改名需已在 Converter 登录）。
+5. 打开 **Settings** 在中文与 English 之间切换界面语言。
 
 ---
 

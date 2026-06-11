@@ -2,11 +2,13 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:helpers="clr-namespace:RefreshToAccess2.Helpers"
+        xmlns:loc="clr-namespace:RefreshToAccess2.Localization"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         mc:Ignorable="d"
         Style="{StaticResource MaterialDesignWindow}"
-        Title="Select Token for Injection"
+        Title="{loc:Tr InjTok.Title}"
         Height="380" Width="480"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
@@ -15,7 +17,7 @@
     <StackPanel Margin="28">
 
         <!-- Heading -->
-        <TextBlock Text="Select Token for Injection"
+        <TextBlock Text="{loc:Tr InjTok.Title}"
                    Style="{StaticResource MaterialDesignHeadline6TextBlock}"
                    Margin="0,0,0,20"/>
 
@@ -25,7 +27,7 @@
                     md:ColorZoneAssist.Mode="PrimaryMid">
 
             <!-- Tab 1 – pick from stored alts -->
-            <TabItem Header="Stored Account">
+            <TabItem Header="{loc:Tr InjTok.StoredAccount}">
                 <Grid Margin="8,16,8,8">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -33,7 +35,7 @@
                     </Grid.RowDefinitions>
 
                     <TextBlock Grid.Row="0"
-                               Text="Only accounts with a non-expired access token are listed."
+                               Text="{loc:Tr InjTok.OnlyNonExpired}"
                                Style="{StaticResource MaterialDesignCaptionTextBlock}"
                                Opacity="0.7"
                                TextWrapping="Wrap"
@@ -42,17 +44,17 @@
                     <ComboBox Grid.Row="1"
                               x:Name="StoredTokenComboBox"
                               Style="{StaticResource MaterialDesignOutlinedComboBox}"
-                              md:HintAssist.Hint="Select account"
+                              md:HintAssist.Hint="{loc:Tr InjTok.SelectAccount}"
                               Height="48"/>
                 </Grid>
             </TabItem>
 
             <!-- Tab 2 – paste a raw access token -->
-            <TabItem Header="Custom Token">
+            <TabItem Header="{loc:Tr InjTok.CustomToken}">
                 <Grid Margin="8,16,8,8">
                     <TextBox x:Name="CustomTokenBox"
                              Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                             md:HintAssist.Hint="Paste access token here"
+                             md:HintAssist.Hint="{loc:Tr InjTok.PasteHere}"
                              FontFamily="Consolas"
                              TextWrapping="Wrap"
                              AcceptsReturn="False"
@@ -63,12 +65,13 @@
         </TabControl>
 
         <!-- Inject button -->
-        <Button Content="Inject Token"
+        <Button Content="{loc:Tr InjTok.InjectToken}"
                 Height="44"
                 Margin="0,20,0,0"
                 md:ButtonAssist.CornerRadius="8"
                 HorizontalAlignment="Right"
                 Width="160"
+                helpers:InteractionAnimation.Pop="True"
                 Click="OnInject"/>
 
     </StackPanel>

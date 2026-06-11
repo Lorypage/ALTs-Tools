@@ -1,7 +1,9 @@
 <UserControl x:Class="RefreshToAccess2.Views.TokenInjectorView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes">
+             xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:helpers="clr-namespace:RefreshToAccess2.Helpers"
+             xmlns:loc="clr-namespace:RefreshToAccess2.Localization">
 
     <Grid Margin="24">
         <Grid.RowDefinitions>
@@ -11,7 +13,7 @@
 
         <!-- Heading -->
         <TextBlock Grid.Row="0"
-                   Text="Token Injector"
+                   Text="{loc:Tr Injector.Title}"
                    Style="{StaticResource MaterialDesignHeadline5TextBlock}"
                    Margin="0,0,0,20"/>
 
@@ -26,11 +28,12 @@
                        MaxWidth="560"
                        Margin="0,0,0,24"
                        Style="{StaticResource MaterialDesignBody1TextBlock}"
-                       Text="Select a running Minecraft process and inject the current access token into it. Make sure you have converted a valid token before injecting."/>
+                       Text="{loc:Tr Injector.Desc}"/>
 
-            <Button Content="Open Process Selector"
+            <Button Content="{loc:Tr Injector.OpenSelector}"
                     Width="220" Height="44"
                     md:ButtonAssist.CornerRadius="8"
+                    helpers:InteractionAnimation.Pop="True"
                     Click="OnOpenProcSelector"/>
 
             <!-- Status feedback -->

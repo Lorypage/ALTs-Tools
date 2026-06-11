@@ -3,7 +3,17 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:controls="clr-namespace:RefreshToAccess2.Controls"
              xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:helpers="clr-namespace:RefreshToAccess2.Helpers"
+             xmlns:loc="clr-namespace:RefreshToAccess2.Localization"
              Loaded="OnLoaded">
+
+    <UserControl.Resources>
+        <loc:EnumLocalizeConverter x:Key="EnumLoc"/>
+        <helpers:InvertBoolConverter x:Key="InvertBool"/>
+        <DataTemplate x:Key="EnumItemTemplate">
+            <TextBlock Text="{Binding Converter={StaticResource EnumLoc}}"/>
+        </DataTemplate>
+    </UserControl.Resources>
 
     <Grid Margin="24,20,24,16">
         <Grid.ColumnDefinitions>
@@ -26,11 +36,11 @@
                 <StackPanel>
 
                     <!-- Header — clean type, no gimmicky icon circle -->
-                    <TextBlock Text="Skin Changer"
+                    <TextBlock Text="{loc:Tr Skin.Title}"
                                FontSize="24"
                                FontWeight="SemiBold"/>
 
-                    <TextBlock Text="Preview, search, and manage Minecraft skins."
+                    <TextBlock Text="{loc:Tr Skin.Subtitle}"
                                FontSize="13"
                                Opacity="0.58"
                                Margin="0,4,0,24"/>
@@ -43,7 +53,7 @@
                             BorderThickness="1"
                             Margin="0,0,0,12">
                         <StackPanel>
-                            <TextBlock Text="Current account"
+                            <TextBlock Text="{loc:Tr Skin.CurrentAccount}"
                                        FontSize="15"
                                        FontWeight="SemiBold"
                                        Margin="0,0,0,10"/>
@@ -60,13 +70,13 @@
                                 </Grid.RowDefinitions>
 
                                 <TextBlock Grid.Row="0" Grid.Column="0"
-                                           Text="Name" Opacity="0.50" Margin="0,0,0,3"/>
+                                           Text="{loc:Tr Skin.Name}" Opacity="0.50" Margin="0,0,0,3"/>
                                 <TextBlock Grid.Row="0" Grid.Column="1"
                                            Text="{Binding ProfileName}" FontWeight="Medium"
                                            Margin="0,0,0,3"/>
 
                                 <TextBlock Grid.Row="1" Grid.Column="0"
-                                           Text="UUID" Opacity="0.50" Margin="0,0,0,3"/>
+                                           Text="{loc:Tr Skin.Uuid}" Opacity="0.50" Margin="0,0,0,3"/>
                                 <TextBlock Grid.Row="1" Grid.Column="1"
                                            Text="{Binding ProfileId}"
                                            TextTrimming="CharacterEllipsis"
@@ -74,7 +84,7 @@
                                            Margin="0,0,0,3"/>
 
                                 <TextBlock Grid.Row="2" Grid.Column="0"
-                                           Text="Skin" Opacity="0.50"/>
+                                           Text="{loc:Tr Skin.Skin}" Opacity="0.50"/>
                                 <TextBlock Grid.Row="2" Grid.Column="1"
                                            Text="{Binding CurrentSkinUrl}"
                                            TextTrimming="CharacterEllipsis"
@@ -82,16 +92,41 @@
                             </Grid>
 
                             <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
-                                <Button Content="Refresh"
+                                <Button Content="{loc:Tr Skin.Refresh}"
                                         Command="{Binding RefreshProfileCommand}"
                                         Style="{StaticResource MaterialDesignOutlinedButton}"
                                         Height="30" Padding="14,0" FontSize="12"/>
-                                <Button Content="Fetch skin"
+                                <Button Content="{loc:Tr Skin.FetchSkin}"
                                         Command="{Binding FetchPlayerSkinCommand}"
                                         Style="{StaticResource MaterialDesignOutlinedButton}"
                                         Height="30" Padding="14,0" FontSize="12"
                                         Margin="8,0,0,0"/>
                             </StackPanel>
+
+                            <!-- ── Rename (merged from Renamer) ── -->
+                            <Separator Opacity="0.25" Margin="0,14,0,12"/>
+                            <TextBlock Text="{loc:Tr Skin.Rename}"
+                                       FontSize="12" FontWeight="Medium" Opacity="0.58"
+                                       Margin="0,0,0,8"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox Grid.Column="0"
+                                         md:HintAssist.Hint="{loc:Tr Skin.NewNameHint}"
+                                         Text="{Binding NewName, UpdateSourceTrigger=PropertyChanged}"
+                                         MaxLength="16"
+                                         VerticalAlignment="Center"
+                                         IsEnabled="{Binding IsBusy, Converter={StaticResource InvertBool}}"/>
+                                <Button Grid.Column="1"
+                                        Content="{loc:Tr Skin.RenameButton}"
+                                        Command="{Binding RenameCommand}"
+                                        Height="30" Padding="14,0" FontSize="12"
+                                        VerticalAlignment="Center"
+                                        helpers:InteractionAnimation.Pop="True"
+                                        Margin="8,0,0,0"/>
+                            </Grid>
                         </StackPanel>
                     </Border>
 
@@ -103,24 +138,25 @@
                             BorderThickness="1"
                             Margin="0,0,0,12">
                         <StackPanel>
-                            <TextBlock Text="Find player skin"
+                            <TextBlock Text="{loc:Tr Skin.FindPlayer}"
                                        FontSize="15"
                                        FontWeight="SemiBold"
                                        Margin="0,0,0,10"/>
 
-                            <TextBox md:HintAssist.Hint="Player name"
+                            <TextBox md:HintAssist.Hint="{loc:Tr Skin.PlayerNameHint}"
                                      md:TextFieldAssist.HasClearButton="True"
                                      Text="{Binding OtherPlayerName, UpdateSourceTrigger=PropertyChanged}"/>
 
                             <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
                                 <Button Command="{Binding PreviewOtherPlayerSkinCommand}"
-                                        Height="30" Padding="14,0" FontSize="12">
+                                        Height="30" Padding="14,0" FontSize="12"
+                                        helpers:InteractionAnimation.Pop="True">
                                     <StackPanel Orientation="Horizontal">
                                         <md:PackIcon Kind="Eye" Width="15" Height="15" Margin="0,0,5,0"/>
-                                        <TextBlock Text="Preview"/>
+                                        <TextBlock Text="{loc:Tr Skin.Preview}"/>
                                     </StackPanel>
                                 </Button>
-                                <Button Content="Save PNG"
+                                <Button Content="{loc:Tr Skin.SavePng}"
                                         Command="{Binding DownloadOtherPlayerSkinCommand}"
                                         Style="{StaticResource MaterialDesignOutlinedButton}"
                                         Height="30" Padding="14,0" FontSize="12"
@@ -140,7 +176,7 @@
                                 </Grid.RowDefinitions>
 
                                 <TextBlock Grid.Row="0" Grid.Column="0"
-                                           Text="Name" FontSize="12" Opacity="0.42"
+                                           Text="{loc:Tr Skin.Name}" FontSize="12" Opacity="0.42"
                                            Margin="0,0,0,2"/>
                                 <TextBlock Grid.Row="0" Grid.Column="1"
                                            Text="{Binding OtherPlayerResolvedName}"
@@ -148,7 +184,7 @@
                                            Margin="0,0,0,2"/>
 
                                 <TextBlock Grid.Row="1" Grid.Column="0"
-                                           Text="UUID" FontSize="12" Opacity="0.42"
+                                           Text="{loc:Tr Skin.Uuid}" FontSize="12" Opacity="0.42"
                                            Margin="0,0,0,2"/>
                                 <TextBlock Grid.Row="1" Grid.Column="1"
                                            Text="{Binding OtherPlayerResolvedId}"
@@ -158,7 +194,7 @@
                                            Margin="0,0,0,2"/>
 
                                 <TextBlock Grid.Row="2" Grid.Column="0"
-                                           Text="Skin" FontSize="12" Opacity="0.42"/>
+                                           Text="{loc:Tr Skin.Skin}" FontSize="12" Opacity="0.42"/>
                                 <TextBlock Grid.Row="2" Grid.Column="1"
                                            Text="{Binding OtherPlayerSkinUrl}"
                                            FontSize="12" Opacity="0.68"
@@ -176,56 +212,59 @@
                             BorderThickness="1"
                             Margin="0,0,0,12">
                         <StackPanel>
-                            <TextBlock Text="Apply skin"
+                            <TextBlock Text="{loc:Tr Skin.ApplySkin}"
                                        FontSize="15"
                                        FontWeight="SemiBold"
                                        Margin="0,0,0,4"/>
-                            <TextBlock Text="Upload to your account from a local file or URL."
+                            <TextBlock Text="{loc:Tr Skin.ApplyDesc}"
                                        FontSize="12"
                                        Opacity="0.55"
                                        Margin="0,0,0,12"/>
 
-                            <ComboBox md:HintAssist.Hint="Skin variant"
+                            <ComboBox md:HintAssist.Hint="{loc:Tr Skin.VariantHint}"
                                       ItemsSource="{Binding AvailableVariants}"
                                       SelectedItem="{Binding SelectedVariant}"
+                                      ItemTemplate="{StaticResource EnumItemTemplate}"
                                       Margin="0,0,0,14"/>
 
                             <Separator Opacity="0.25" Margin="0,0,0,12"/>
 
                             <!-- from file -->
-                            <TextBlock Text="From file"
+                            <TextBlock Text="{loc:Tr Skin.FromFile}"
                                        FontSize="12" FontWeight="Medium" Opacity="0.58"
                                        Margin="0,0,0,8"/>
 
-                            <TextBox md:HintAssist.Hint="Path to skin PNG"
+                            <TextBox md:HintAssist.Hint="{loc:Tr Skin.PathHint}"
                                      Text="{Binding LocalSkinPath, UpdateSourceTrigger=PropertyChanged}"
                                      Margin="0,0,0,8"/>
 
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
-                                <Button Content="Browse"
+                                <Button Content="{loc:Tr Skin.Browse}"
                                         Command="{Binding BrowseSkinCommand}"
                                         Style="{StaticResource MaterialDesignOutlinedButton}"
                                         Height="30" Padding="14,0" FontSize="12"/>
-                                <Button Content="Upload"
+                                <Button Content="{loc:Tr Skin.Upload}"
                                         Command="{Binding ApplyFileSkinCommand}"
                                         Height="30" Padding="14,0" FontSize="12"
+                                        helpers:InteractionAnimation.Pop="True"
                                         Margin="8,0,0,0"/>
                             </StackPanel>
 
                             <Separator Opacity="0.25" Margin="0,0,0,12"/>
 
                             <!-- from URL -->
-                            <TextBlock Text="From URL"
+                            <TextBlock Text="{loc:Tr Skin.FromUrl}"
                                        FontSize="12" FontWeight="Medium" Opacity="0.58"
                                        Margin="0,0,0,8"/>
 
-                            <TextBox md:HintAssist.Hint="Direct PNG URL"
+                            <TextBox md:HintAssist.Hint="{loc:Tr Skin.UrlHint}"
                                      Text="{Binding RemoteSkinUrl, UpdateSourceTrigger=PropertyChanged}"
                                      Margin="0,0,0,8"/>
 
-                            <Button Content="Apply URL"
+                            <Button Content="{loc:Tr Skin.ApplyUrl}"
                                     Command="{Binding ApplyUrlSkinCommand}"
                                     Height="30" Padding="14,0" FontSize="12"
+                                    helpers:InteractionAnimation.Pop="True"
                                     HorizontalAlignment="Left"/>
                         </StackPanel>
                     </Border>
@@ -238,7 +277,7 @@
                             BorderThickness="1"
                             Margin="0,0,0,4">
                         <StackPanel>
-                            <TextBlock Text="Scene"
+                            <TextBlock Text="{loc:Tr Skin.Scene}"
                                        FontSize="15"
                                        FontWeight="SemiBold"
                                        Margin="0,0,0,10"/>
@@ -253,28 +292,35 @@
                                 </Grid.ColumnDefinitions>
 
                                 <ComboBox Grid.Column="0"
-                                          md:HintAssist.Hint="Animation"
+                                          md:HintAssist.Hint="{loc:Tr Skin.AnimationHint}"
                                           ItemsSource="{Binding AvailableAnimationModes}"
-                                          SelectedItem="{Binding SelectedAnimationMode}"/>
+                                          SelectedItem="{Binding SelectedAnimationMode}"
+                                          ItemTemplate="{StaticResource EnumItemTemplate}"/>
 
                                 <ComboBox Grid.Column="2"
-                                          md:HintAssist.Hint="Background"
+                                          md:HintAssist.Hint="{loc:Tr Skin.BackgroundHint}"
                                           ItemsSource="{Binding AvailableBackgroundModes}"
-                                          SelectedItem="{Binding SelectedBackgroundMode}"/>
+                                          SelectedItem="{Binding SelectedBackgroundMode}"
+                                          ItemTemplate="{StaticResource EnumItemTemplate}"/>
 
                                 <ComboBox Grid.Column="4"
-                                          md:HintAssist.Hint="Panorama"
+                                          md:HintAssist.Hint="{loc:Tr Skin.PanoramaHint}"
                                           ItemsSource="{Binding AvailablePanoramaPresets}"
-                                          SelectedItem="{Binding SelectedPanoramaPreset}"
-                                          DisplayMemberPath="DisplayName"/>
+                                          SelectedItem="{Binding SelectedPanoramaPreset}">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding DisplayName}"/>
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
                             </Grid>
 
                             <StackPanel Orientation="Horizontal" Margin="-6,2,0,0">
-                                <Button Content="Clear panorama"
+                                <Button Content="{loc:Tr Skin.ClearPanorama}"
                                         Command="{Binding ClearPanoramaCommand}"
                                         Style="{StaticResource MaterialDesignFlatButton}"
                                         Height="28" Padding="8,0" FontSize="12"/>
-                                <Button Content="Reset camera"
+                                <Button Content="{loc:Tr Skin.ResetCamera}"
                                         Click="ResetCameraButton_OnClick"
                                         Style="{StaticResource MaterialDesignFlatButton}"
                                         Height="28" Padding="8,0" FontSize="12"/>
@@ -313,7 +359,7 @@
                     PanoramaSourcePath="{Binding PanoramaSourcePath}"/>
             </Border>
 
-            <TextBlock Text="Left-click orbit  ·  Right-click pan  ·  Scroll to zoom"
+            <TextBlock Text="{loc:Tr Skin.OrbitHint}"
                        HorizontalAlignment="Center"
                        VerticalAlignment="Bottom"
                        Margin="0,0,0,14"

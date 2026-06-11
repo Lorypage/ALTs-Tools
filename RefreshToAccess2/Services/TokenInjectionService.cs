@@ -8,6 +8,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
+using RefreshToAccess2.Localization;
 
 namespace RefreshToAccess2.Services
 {
@@ -139,17 +140,17 @@ namespace RefreshToAccess2.Services
 
                 MessageBox.Show(
                     success
-                        ? "Token successfully injected."
-                        : $"Injection returned failure:\n{message}",
-                    success ? "Success" : "Injection error",
+                        ? Loc.T("Inject.Success")
+                        : Loc.T("Inject.ReturnedFailure", message),
+                    success ? Loc.T("Common.Success") : Loc.T("Inject.Error"),
                     MessageBoxButton.OK,
                     success ? MessageBoxImage.Information : MessageBoxImage.Warning);
             }
             catch (Exception ex)
             {
                 MessageBox.Show(
-                    $"Failed to send token:\n{ex.Message}",
-                    "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    Loc.T("Inject.SendFailed", ex.Message),
+                    Loc.T("Common.Error"), MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -195,7 +196,7 @@ namespace RefreshToAccess2.Services
                 {
                     MessageBox.Show(
                         errEl.GetString(),
-                        "Injected DLL error",
+                        Loc.T("Inject.DllError"),
                         MessageBoxButton.OK,
                         MessageBoxImage.Warning);
                 }
@@ -245,17 +246,17 @@ namespace RefreshToAccess2.Services
 
                 MessageBox.Show(
                     success
-                        ? "Found an injected Minecraft process – ready to swap tokens."
-                        : $"Handshake failed on port {port}: {message}",
-                    "Token Injector",
+                        ? Loc.T("Inject.HandshakeOk")
+                        : Loc.T("Inject.HandshakeFailed", port, message),
+                    Loc.T("Inject.Title"),
                     MessageBoxButton.OK,
                     success ? MessageBoxImage.Information : MessageBoxImage.Warning);
             }
             catch (Exception ex)
             {
                 MessageBox.Show(
-                    $"Handshake error on port {port}:\n{ex.Message}",
-                    "Token Injector",
+                    Loc.T("Inject.HandshakeError", port, ex.Message),
+                    Loc.T("Inject.Title"),
                     MessageBoxButton.OK,
                     MessageBoxImage.Warning);
             }

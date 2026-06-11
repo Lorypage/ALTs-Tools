@@ -5,13 +5,14 @@
         xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:views="clr-namespace:RefreshToAccess2.Views"
         xmlns:helpers="clr-namespace:RefreshToAccess2.Helpers"
+        xmlns:loc="clr-namespace:RefreshToAccess2.Localization"
         xmlns:local="clr-namespace:RefreshToAccess2"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
         Style="{StaticResource MaterialDesignWindow}"
         Background="{DynamicResource MaterialDesign.Brush.Background}"
-        Title="Token Tools For Minecraft 2.3"
+        Title="{loc:Tr Window.Title}"
         Height="680" Width="1235"
         MinHeight="600" MinWidth="860"
         WindowStartupLocation="CenterScreen"
@@ -34,26 +35,26 @@
         <helpers:InvertBoolConverter x:Key="InvertBoolConverter"/>
 
         <x:Array x:Key="NavItems" Type="{x:Type local:NavItem}">
-            <local:NavItem Label="Converter"
-                           IconTooltip="Open Token Converter"
+            <local:NavItem LabelKey="Nav.Converter"
+                           TooltipKey="Nav.Converter.Tip"
                            SelectedIcon="KeyVariant"
                            UnselectedIcon="Key"/>
-            <local:NavItem Label="AltManager"
-                           IconTooltip="Open Alt Manager"
+            <local:NavItem LabelKey="Nav.AltManager"
+                           TooltipKey="Nav.AltManager.Tip"
                            SelectedIcon="AccountMultiple"
                            UnselectedIcon="Account"/>
-            <local:NavItem Label="Renamer"
-                           IconTooltip="Open IGN Rename"
-                           SelectedIcon="AccountEdit"
-                           UnselectedIcon="AccountEdit"/>
-            <local:NavItem Label="Injector"
-                           IconTooltip="Open Token Injector"
+            <local:NavItem LabelKey="Nav.Injector"
+                           TooltipKey="Nav.Injector.Tip"
                            SelectedIcon="Needle"
                            UnselectedIcon="Needle"/>
-            <local:NavItem Label="Skin Changer"
-               IconTooltip="Open Skin Changer"
+            <local:NavItem LabelKey="Nav.SkinChanger"
+               TooltipKey="Nav.SkinChanger.Tip"
                SelectedIcon="AccountBox"
                UnselectedIcon="AccountBoxOutline"/>
+            <local:NavItem LabelKey="Nav.Settings"
+               TooltipKey="Nav.Settings.Tip"
+               SelectedIcon="Cog"
+               UnselectedIcon="CogOutline"/>
         </x:Array>
 
         <DataTemplate x:Key="NavRailItemTemplate" DataType="{x:Type local:NavItem}">
@@ -118,7 +119,7 @@
                     HorizontalAlignment="Center"
                     Click="OnToggleRail"
                     Style="{StaticResource MaterialDesignIconButton}"
-                    ToolTip="Toggle navigation labels">
+                    ToolTip="{loc:Tr Nav.ToggleLabels}">
                 <md:PackIcon x:Name="ToggleIcon"
                              Kind="Menu"
                              Width="24"
@@ -188,16 +189,6 @@
                 </views:AltManagerView.RenderTransform>
             </views:AltManagerView>
 
-            <views:IGNRenameView
-                x:Name="IGNRenameView"
-                DataContext="{Binding IGNRename}"
-                Visibility="Collapsed"
-                RenderTransformOrigin="0.5,0.5">
-                <views:IGNRenameView.RenderTransform>
-                    <TranslateTransform Y="0"/>
-                </views:IGNRenameView.RenderTransform>
-            </views:IGNRenameView>
-
             <views:TokenInjectorView
                 x:Name="InjectorView"
                 Visibility="Collapsed"
@@ -216,6 +207,16 @@
                     <TranslateTransform Y="0"/>
                 </views:SkinChangerView.RenderTransform>
             </views:SkinChangerView>
+
+            <views:SettingsView
+                x:Name="SettingsView"
+                DataContext="{Binding Settings}"
+                Visibility="Collapsed"
+                RenderTransformOrigin="0.5,0.5">
+                <views:SettingsView.RenderTransform>
+                    <TranslateTransform Y="0"/>
+                </views:SettingsView.RenderTransform>
+            </views:SettingsView>
 
         </Grid>
     </Grid>

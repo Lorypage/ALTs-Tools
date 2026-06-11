@@ -1,3 +1,4 @@
+using RefreshToAccess2.Localization;
 using RefreshToAccess2.Models;
 using RefreshToAccess2.Services;
 using System.Collections.ObjectModel;
@@ -11,8 +12,8 @@ namespace RefreshToAccess2.ViewModels
 
         public TokenConverterViewModel Converter   { get; }
         public AltManagerViewModel     AltManager  { get; }
-        public IGNRenameViewModel      IGNRename   { get; }
         public SkinChangerViewModel    SkinChanger { get; }
+        public SettingsViewModel       Settings    { get; }
 
         public int SelectedNavIndex { get; set; }
 
@@ -22,8 +23,8 @@ namespace RefreshToAccess2.ViewModels
             TokenProfiles = new ObservableCollection<ProfileDataBlock>(ProfileService.Load() ?? new List<ProfileDataBlock>());
             Converter   = new TokenConverterViewModel();
             AltManager  = new AltManagerViewModel(TokenProfiles);
-            IGNRename   = new IGNRenameViewModel(Converter);
             SkinChanger = new SkinChangerViewModel(Converter);
+            Settings    = new SettingsViewModel();
 
             Converter.OnProfileAdded += block =>
             {
@@ -36,6 +37,14 @@ namespace RefreshToAccess2.ViewModels
                     TokenProfiles.Add(b);
 
                 ProfileService.Save(TokenProfiles.ToList());
+            };
+
+            // Refresh dynamic (non-binding-key) VM text whenever language changes.
+            LocalizationManager.Instance.LanguageChanged += () =>
+            {
+                Converter.RefreshLocalizedText();
+                AltManager.RefreshLocalizedText();
+                SkinChanger.RefreshLocalizedText();
             };
         }
     }

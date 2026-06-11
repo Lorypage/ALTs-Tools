@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:helpers="clr-namespace:RefreshToAccess2.Helpers"
+             xmlns:loc="clr-namespace:RefreshToAccess2.Localization"
              UseLayoutRounding="True"
              SnapsToDevicePixels="True"
              TextOptions.TextFormattingMode="Display"
@@ -258,31 +259,27 @@
 
                     <TextBox Grid.Column="0"
                              Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                             md:HintAssist.Hint="Search accounts…"
+                             md:HintAssist.Hint="{loc:Tr AltMgr.SearchHint}"
                              md:TextFieldAssist.HasClearButton="True"
                              Style="{StaticResource MaterialDesignOutlinedTextBox}"
                              Width="320" Height="46"
                              VerticalContentAlignment="Center" FontSize="14"/>
 
                     <TextBlock Grid.Column="2" VerticalAlignment="Center"
-                               HorizontalAlignment="Left" Opacity="0.50" FontSize="13">
-                        <TextBlock.Text>
-                            <MultiBinding StringFormat="{}{0} account(s)">
-                                <Binding Path="TotalCount"/>
-                            </MultiBinding>
-                        </TextBlock.Text>
-                    </TextBlock>
+                               HorizontalAlignment="Left" Opacity="0.50" FontSize="13"
+                               Text="{Binding AccountCountText}"/>
 
                     <StackPanel Grid.Column="3" Orientation="Horizontal"
                                 VerticalAlignment="Center">
 
                         <Button Style="{StaticResource MaterialDesignOutlinedButton}"
                                 Height="38" Margin="0,0,8,0"
-                                Click="OnImport" ToolTip="Import profiles (.tapf)">
+                                helpers:InteractionAnimation.Pop="True"
+                                Click="OnImport" ToolTip="{loc:Tr AltMgr.ImportTip}">
                             <StackPanel Orientation="Horizontal">
                                 <md:PackIcon Kind="FileImport" Width="18" Height="18"
                                              VerticalAlignment="Center"/>
-                                <TextBlock Text="Import" Margin="6,0,0,0"
+                                <TextBlock Text="{loc:Tr AltMgr.Import}" Margin="6,0,0,0"
                                            VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
@@ -290,7 +287,7 @@
                         <ToggleButton Style="{StaticResource MaterialDesignFlatPrimaryToggleButton}"
                                       Width="40" Height="40" Margin="4,0"
                                       IsChecked="{Binding IsCardView, Converter={StaticResource InvertBool}}"
-                                      ToolTip="Toggle card / list">
+                                      ToolTip="{loc:Tr AltMgr.ToggleViewTip}">
                             <md:PackIcon Kind="FormatListBulleted" Width="21" Height="21"/>
                             <md:ToggleButtonAssist.OnContent>
                                 <md:PackIcon Kind="ViewGrid" Width="21" Height="21"/>
@@ -300,7 +297,7 @@
                         <ToggleButton Style="{StaticResource MaterialDesignFlatPrimaryToggleButton}"
                                       Width="40" Height="40" Margin="4,0"
                                       IsChecked="{Binding IsSelectionMode}"
-                                      ToolTip="Toggle selection mode">
+                                      ToolTip="{loc:Tr AltMgr.ToggleSelectTip}">
                             <md:PackIcon Kind="CheckboxMultipleBlankOutline" Width="21" Height="21"/>
                             <md:ToggleButtonAssist.OnContent>
                                 <md:PackIcon Kind="CheckboxMultipleMarked" Width="21" Height="21"/>
@@ -310,7 +307,7 @@
                         <!-- Settings button — aligned as icon button matching toggle size -->
                         <Button Style="{StaticResource MaterialDesignIconForegroundButton}"
                                 Width="40" Height="40" Margin="4,0"
-                                Click="OnOpenSettings" ToolTip="Settings">
+                                Click="OnOpenSettings" ToolTip="{loc:Tr AltMgr.SettingsTip}">
                             <md:PackIcon Kind="CogOutline" Width="21" Height="21"/>
                         </Button>
                     </StackPanel>
@@ -368,9 +365,9 @@
                             Visibility="{Binding IsEmpty, Converter={StaticResource BoolVis}}">
                     <md:PackIcon Kind="AccountGroupOutline" Width="64" Height="64"
                                  HorizontalAlignment="Center" Opacity="0.25"/>
-                    <TextBlock Text="No accounts found" FontSize="17" FontWeight="Medium"
+                    <TextBlock Text="{loc:Tr AltMgr.NoAccounts}" FontSize="17" FontWeight="Medium"
                                HorizontalAlignment="Center" Opacity="0.50" Margin="0,14,0,4"/>
-                    <TextBlock Text="Import profiles or convert tokens to get started"
+                    <TextBlock Text="{loc:Tr AltMgr.NoAccountsHint}"
                                FontSize="13" HorizontalAlignment="Center" Opacity="0.35"/>
                 </StackPanel>
             </Grid>
@@ -395,9 +392,9 @@
                 </Grid.ColumnDefinitions>
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                     <Button Style="{StaticResource MaterialDesignFlatButton}"
-                            Content="Select All" Height="34" FontSize="12.5" Click="OnSelectAll"/>
+                            Content="{loc:Tr AltMgr.SelectAll}" Height="34" FontSize="12.5" Click="OnSelectAll"/>
                     <Button Style="{StaticResource MaterialDesignFlatButton}"
-                            Content="Deselect" Height="34" FontSize="12.5"
+                            Content="{loc:Tr AltMgr.Deselect}" Height="34" FontSize="12.5"
                             Margin="2,0,0,0" Click="OnDeselectAll"/>
                 </StackPanel>
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
@@ -428,7 +425,7 @@
                         <StackPanel Orientation="Horizontal">
                             <md:PackIcon Kind="FileExportOutline" Width="17" Height="17"
                                          VerticalAlignment="Center"/>
-                            <TextBlock Text="Export Selected" Margin="5,0,0,0"
+                            <TextBlock Text="{loc:Tr AltMgr.ExportSelected}" Margin="5,0,0,0"
                                        VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
@@ -438,7 +435,7 @@
                         <StackPanel Orientation="Horizontal">
                             <md:PackIcon Kind="DatabaseExportOutline" Width="17" Height="17"
                                          VerticalAlignment="Center"/>
-                            <TextBlock Text="Export All" Margin="5,0,0,0"
+                            <TextBlock Text="{loc:Tr AltMgr.ExportAll}" Margin="5,0,0,0"
                                        VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
@@ -450,7 +447,7 @@
                         <StackPanel Orientation="Horizontal">
                             <md:PackIcon Kind="DeleteSweepOutline" Width="17" Height="17"
                                          VerticalAlignment="Center"/>
-                            <TextBlock Text="Delete All" Margin="5,0,0,0"
+                            <TextBlock Text="{loc:Tr AltMgr.DeleteAll}" Margin="5,0,0,0"
                                        VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
@@ -496,12 +493,12 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Text="Settings" FontSize="20" FontWeight="SemiBold"
+                        <TextBlock Text="{loc:Tr AltMgr.SettingsTip}" FontSize="20" FontWeight="SemiBold"
                                    VerticalAlignment="Center"/>
                         <Button Grid.Column="1"
                                 Style="{StaticResource MaterialDesignIconForegroundButton}"
                                 Width="36" Height="36"
-                                Click="OnCloseSettings" ToolTip="Close">
+                                Click="OnCloseSettings" ToolTip="{loc:Tr Common.Close}">
                             <md:PackIcon Kind="Close" Width="20" Height="20"/>
                         </Button>
                     </Grid>
@@ -512,20 +509,20 @@
                                   HorizontalScrollBarVisibility="Disabled">
                         <StackPanel>
                             <!-- Sort -->
-                            <TextBlock Text="SORT BY" FontWeight="Medium" FontSize="11.5"
+                            <TextBlock Text="{loc:Tr AltMgr.SortBy}" FontWeight="Medium" FontSize="11.5"
                                        Opacity="0.50" Margin="0,0,0,10"/>
                             <ComboBox SelectedIndex="{Binding SortIndex}"
                                       Style="{StaticResource MaterialDesignOutlinedComboBox}"
-                                      md:HintAssist.Hint="Sort order"
+                                      md:HintAssist.Hint="{loc:Tr AltMgr.SortOrderHint}"
                                       Margin="0,0,0,24">
-                                <ComboBoxItem Content="Date (Newest first)"/>
-                                <ComboBoxItem Content="Date (Oldest first)"/>
-                                <ComboBoxItem Content="Name (A → Z)"/>
-                                <ComboBoxItem Content="Name (Z → A)"/>
+                                <ComboBoxItem Content="{loc:Tr AltMgr.SortDateNewest}"/>
+                                <ComboBoxItem Content="{loc:Tr AltMgr.SortDateOldest}"/>
+                                <ComboBoxItem Content="{loc:Tr AltMgr.SortNameAZ}"/>
+                                <ComboBoxItem Content="{loc:Tr AltMgr.SortNameZA}"/>
                             </ComboBox>
 
                             <!-- Card size -->
-                            <TextBlock Text="CARD SIZE" FontWeight="Medium" FontSize="11.5"
+                            <TextBlock Text="{loc:Tr AltMgr.CardSize}" FontWeight="Medium" FontSize="11.5"
                                        Opacity="0.50" Margin="0,0,0,10"/>
                             <Grid Margin="0,0,0,24">
                                 <Grid.ColumnDefinitions>
@@ -552,7 +549,7 @@
                                 <StackPanel Orientation="Horizontal">
                                     <md:PackIcon Kind="FaceManProfile" Width="19" Height="19"
                                                  VerticalAlignment="Center"/>
-                                    <TextBlock Text="Refresh All Head Skins" Margin="8,0,0,0"
+                                    <TextBlock Text="{loc:Tr AltMgr.RefreshAllHeads}" Margin="8,0,0,0"
                                                VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
@@ -594,7 +591,7 @@
                     <Button Style="{StaticResource MaterialDesignIconButton}"
                             HorizontalAlignment="Right" VerticalAlignment="Top"
                             Margin="0,-6,-6,0" Width="38" Height="38"
-                            Click="OnCloseDetail" ToolTip="Close (Esc)">
+                            Click="OnCloseDetail" ToolTip="{loc:Tr AltMgr.CloseEsc}">
                         <md:PackIcon Kind="Close" Width="20" Height="20"/>
                     </Button>
 
@@ -617,12 +614,12 @@
                         <TextBlock Text="{Binding DetailItem.IGN}" FontSize="21" FontWeight="SemiBold"
                                    HorizontalAlignment="Center" Margin="0,10,0,3"/>
                         <TextBlock HorizontalAlignment="Center" Opacity="0.50" FontSize="12.5">
-                            <Run Text="Logged in:"/>
+                            <Run Text="{loc:Tr AltMgr.LoggedIn}"/>
                             <Run Text="{Binding DetailItem.LoginDate, Mode=OneWay}"/>
                         </TextBlock>
                         <TextBlock HorizontalAlignment="Center" Opacity="0.42" FontSize="12"
                                    Margin="0,2,0,0">
-                            <Run Text="Client:"/>
+                            <Run Text="{loc:Tr AltMgr.Client}"/>
                             <Run Text="{Binding DetailItem.ClientId, Mode=OneWay}"/>
                         </TextBlock>
                     </StackPanel>
@@ -638,13 +635,13 @@
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <StackPanel>
-                                        <TextBlock Text="UUID" FontSize="11" Opacity="0.50" FontWeight="Medium"/>
+                                        <TextBlock Text="{loc:Tr AltMgr.Uuid}" FontSize="11" Opacity="0.50" FontWeight="Medium"/>
                                         <TextBlock Text="{Binding DetailItem.UUID}" FontSize="12.5"
                                                    FontFamily="Consolas" Margin="0,3,0,0" TextWrapping="Wrap"/>
                                     </StackPanel>
                                     <Button Grid.Column="1" Tag="UUID" Click="OnCopyField"
                                             Style="{StaticResource MaterialDesignIconForegroundButton}"
-                                            Width="34" Height="34" ToolTip="Copy UUID">
+                                            Width="34" Height="34" ToolTip="{loc:Tr AltMgr.CopyUuidTip}">
                                         <md:PackIcon Kind="ContentCopy" Width="16" Height="16"/>
                                     </Button>
                                 </Grid>
@@ -657,13 +654,13 @@
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <StackPanel>
-                                        <TextBlock Text="Refresh Token" FontSize="11" Opacity="0.50" FontWeight="Medium"/>
+                                        <TextBlock Text="{loc:Tr AltMgr.RefreshToken}" FontSize="11" Opacity="0.50" FontWeight="Medium"/>
                                         <TextBlock Text="{Binding DetailItem.RefShort}" FontSize="12.5"
                                                    FontFamily="Consolas" Margin="0,3,0,0" TextTrimming="CharacterEllipsis"/>
                                     </StackPanel>
                                     <Button Grid.Column="1" Tag="RefToken" Click="OnCopyField"
                                             Style="{StaticResource MaterialDesignIconForegroundButton}"
-                                            Width="34" Height="34" ToolTip="Copy Refresh Token">
+                                            Width="34" Height="34" ToolTip="{loc:Tr AltMgr.CopyRefreshTip}">
                                         <md:PackIcon Kind="ContentCopy" Width="16" Height="16"/>
                                     </Button>
                                 </Grid>
@@ -676,13 +673,13 @@
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <StackPanel>
-                                        <TextBlock Text="Access Token" FontSize="11" Opacity="0.50" FontWeight="Medium"/>
+                                        <TextBlock Text="{loc:Tr AltMgr.AccessToken}" FontSize="11" Opacity="0.50" FontWeight="Medium"/>
                                         <TextBlock Text="{Binding DetailItem.AccShort}" FontSize="12.5"
                                                    FontFamily="Consolas" Margin="0,3,0,0" TextTrimming="CharacterEllipsis"/>
                                     </StackPanel>
                                     <Button Grid.Column="1" Tag="AccToken" Click="OnCopyField"
                                             Style="{StaticResource MaterialDesignIconForegroundButton}"
-                                            Width="34" Height="34" ToolTip="Copy Access Token">
+                                            Width="34" Height="34" ToolTip="{loc:Tr AltMgr.CopyAccessTip}">
                                         <md:PackIcon Kind="ContentCopy" Width="16" Height="16"/>
                                     </Button>
                                 </Grid>
@@ -693,19 +690,21 @@
                     <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Center">
                         <Button Style="{StaticResource MaterialDesignRaisedButton}"
                                 Height="40" Padding="18,0" md:ButtonAssist.CornerRadius="20"
-                                Click="OnDetailRefresh" ToolTip="Refresh token">
+                                helpers:InteractionAnimation.Pop="True"
+                                Click="OnDetailRefresh" ToolTip="{loc:Tr AltMgr.RefreshTokenTip}">
                             <StackPanel Orientation="Horizontal">
                                 <md:PackIcon Kind="Refresh" Width="19" Height="19" VerticalAlignment="Center"/>
-                                <TextBlock Text="Refresh Token" Margin="7,0,0,0"
+                                <TextBlock Text="{loc:Tr AltMgr.RefreshToken}" Margin="7,0,0,0"
                                            VerticalAlignment="Center" FontWeight="Medium"/>
                             </StackPanel>
                         </Button>
                         <Button Style="{StaticResource MaterialDesignOutlinedButton}"
                                 Height="40" Padding="18,0" Margin="10,0,0,0"
-                                md:ButtonAssist.CornerRadius="20" Click="OnCopyAll" ToolTip="Copy all">
+                                helpers:InteractionAnimation.Pop="True"
+                                md:ButtonAssist.CornerRadius="20" Click="OnCopyAll" ToolTip="{loc:Tr AltMgr.CopyAllTip}">
                             <StackPanel Orientation="Horizontal">
                                 <md:PackIcon Kind="ContentCopy" Width="17" Height="17" VerticalAlignment="Center"/>
-                                <TextBlock Text="Copy All" Margin="7,0,0,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="{loc:Tr AltMgr.CopyAll}" Margin="7,0,0,0" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
                     </StackPanel>

@@ -8,7 +8,7 @@
 
 #### A nicer multi-account (ALT) manager for Minecraft players
 
-<p>All in one place — <b>Token Conversion</b> · <b>Account Management</b> · <b>Rename</b> · <b>Injection</b> · <b>Skin Changing</b></p>
+<p>All in one place — <b>Token Conversion</b> · <b>Account Management</b> · <b>Injection</b> · <b>Player Profile (Skin &amp; Rename)</b> · <b>Multi-language</b></p>
 
 <br/>
 
@@ -37,11 +37,11 @@
 
 ## ✨ What is this
 
-**ALTs Tools** (named *Token Tools For Minecraft* in-app) is an all-in-one multi-account (ALT) manager built for Minecraft players.
+**ALTs Tools** is an all-in-one multi-account (ALT) manager built for Minecraft players.
 
-Drop in a Refresh Token and it converts it into a usable Access Token, logs the account in, organizes profiles into neat cards, can "swap" that account into a running game, and even changes the skin while it's at it.
+Drop in a Refresh Token (or a Microsoft login cookie) and it converts it into a usable Access Token, logs the account in, organizes profiles into neat cards, can "swap" that account into a running game, and manages the player profile — skin and in-game name — while it's at it.
 
-The entire UI is built on **WPF + .NET 8** with a **MaterialDesign** theme, a gently drifting **Minecraft panorama** background, and smooth navigation animations — good looking and easy to use.
+The entire UI is built on **WPF + .NET 8** with a **MaterialDesign** theme, a gently drifting **Minecraft panorama** background, lively interaction animations, and full **English / 简体中文** localization that switches at runtime — good looking and easy to use.
 
 > [!WARNING]
 > For learning and personal account management only. Do not use it for anything that violates the Minecraft / Mojang / Microsoft Terms of Service. Use at your own risk.
@@ -57,10 +57,13 @@ The entire UI is built on **WPF + .NET 8** with a **MaterialDesign** theme, a ge
 ### 🔑 Converter
 Turn a **Refresh Token** into an **Access Token** and log in with one click.
 
+- Two switchable modes: **Refresh → Access** and **Cookie → Token**
+  (convert a Microsoft login cookie without logging in or saving)
 - Built-in launcher client identities:
   `Vanilla` · `HMCL` · `PCL` · `Essential` ·
   `ksyz Alt Manager` · `BakaXL` · `LabyMod`, and more
 - Supports a **custom Client ID**
+- Built-in **token expiry check** (reads a JWT or cookie expiry)
 - Optional **auto-copy** of the converted token
 - Live display of player name & UUID
 
@@ -81,12 +84,11 @@ Bring all your ALT accounts together on a visual card wall.
 <tr>
 <td width="50%" valign="top">
 
-### ✏️ Renamer
-Change your in-game name (IGN) directly.
+### ⚙️ Settings
+Make the app yours.
 
-- Calls the official Minecraft rename API
-- Requires logging in via Converter first
-- Instant feedback on the result
+- Switch UI language between **English / 简体中文** — applies instantly, no restart
+- Preference is remembered across launches
 
 </td>
 <td width="50%" valign="top">
@@ -103,11 +105,12 @@ Change your in-game name (IGN) directly.
 <tr>
 <td colspan="2" valign="top">
 
-### 🎨 Skin Changer
-Preview and change skins online — what you see is what you get.
+### 🎨 Player Profile
+Manage your account's name and skin, and preview other players — what you see is what you get.
 
 - **Real-time 3D skin preview** (powered by Direct3D) · supports both `Classic` / `Slim` models
 - Look up and apply skins by **player name** · switch between multiple Minecraft panorama backgrounds
+- **Rename** your in-game name (IGN) right here via the official Minecraft API (no separate page needed)
 
 </td>
 </tr>
@@ -146,9 +149,9 @@ Preview and change skins online — what you see is what you get.
 </tr>
 <tr>
 <td align="center" width="50%">
-<img src="img/screenshots/Rename.png" alt="Renamer" width="100%"/>
-<br/><b>✏️ Renamer</b>
-<br/><sub>Type a new name and rename in one click</sub>
+<img src="img/screenshots/Player%20Profile.png" alt="Player Profile" width="100%"/>
+<br/><b>🎨 Player Profile</b>
+<br/><sub>Real-time 3D skin preview against a Minecraft panorama, with lookup by player name and one-click rename</sub>
 </td>
 <td align="center" width="50%">
 <img src="img/screenshots/Token%20injector.png" alt="Token Injector" width="100%"/>
@@ -157,13 +160,7 @@ Preview and change skins online — what you see is what you get.
 </td>
 </tr>
 </table>
-
 <br/>
-
-<img src="img/screenshots/skin%20changer.png" alt="Skin Changer" width="80%"/>
-<br/><b>🎨 Skin Changer</b>
-<br/><sub>Real-time 3D skin preview against a Minecraft panorama, with lookup by player name</sub>
-
 </div>
 
 ---
@@ -205,11 +202,11 @@ RefreshToAccess2/bin/Release/net8.0-windows/
 
 ## 🧭 Getting Started
 
-1. Open **Converter**, paste a Refresh Token, pick the matching client, and click convert to log in.
+1. Open **Converter**, paste a Refresh Token (or switch to *Cookie → Token* mode), pick the matching client, and click convert to log in. You can also check a token's expiry here.
 2. View, search, and organize all your accounts in **Alt Manager**.
-3. To rename, go to **Renamer** (you must be logged in via Converter first).
-4. After launching Minecraft, use **Injector** to inject the account into the game process and switch without restarting.
-5. Preview and change skins in **Skin Changer**.
+3. After launching Minecraft, use **Injector** to inject the account into the game process and switch without restarting.
+4. In **Player Profile**, preview and change your skin, look up other players, and rename your in-game name (requires logging in via Converter first).
+5. Open **Settings** to switch the interface language between English and 简体中文.
 
 ---
 

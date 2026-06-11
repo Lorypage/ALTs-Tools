@@ -1,4 +1,5 @@
 using RefreshToAccess2.Helpers;
+using RefreshToAccess2.Localization;
 using RefreshToAccess2.Models;
 using RefreshToAccess2.Services;
 using System;
@@ -12,7 +13,19 @@ namespace RefreshToAccess2.ViewModels
 {
     public sealed class SkinChangerViewModel : ViewModelBase
     {
-        public sealed record PanoramaPresetOption(string Key, string DisplayName);
+        public sealed record PanoramaPresetOption(string Key, string Fallback)
+        {
+            /// <summary>Localized name shown in the panorama combo box.</summary>
+            public string DisplayName
+            {
+                get
+                {
+                    string localized = Localization.Loc.T($"Skin.Pano.{Key}");
+                    // If the key is missing, Loc returns the key itself — fall back.
+                    return localized == $"Skin.Pano.{Key}" ? Fallback : localized;
+                }
+            }
+        }
 
         private readonly TokenConverterViewModel _converter;
         private readonly MinecraftSkinService _skinService = new();
@@ -42,7 +55,8 @@ namespace RefreshToAccess2.ViewModels
         private string _profileName = "-";
         private string _profileId = "-";
         private string _currentSkinUrl = "-";
-        private string _statusMessage = "Ready.";
+        private string _statusMessage = Loc.T("Common.Ready");
+        private string _newName = "";
 
         private string? _localSkinPath;
         private string? _remoteSkinUrl;
@@ -78,6 +92,7 @@ namespace RefreshToAccess2.ViewModels
         public AsyncRelayCommand ApplyUrlSkinCommand { get; }
         public AsyncRelayCommand PreviewOtherPlayerSkinCommand { get; }
         public AsyncRelayCommand DownloadOtherPlayerSkinCommand { get; }
+        public AsyncRelayCommand RenameCommand { get; }
 
         public SkinChangerViewModel(TokenConverterViewModel converter)
         {
@@ -94,6 +109,7 @@ namespace RefreshToAccess2.ViewModels
             ApplyUrlSkinCommand = new AsyncRelayCommand(ApplyUrlSkinAsync, CanApplyUrl);
             PreviewOtherPlayerSkinCommand = new AsyncRelayCommand(PreviewOtherPlayerSkinAsync, CanPreviewOtherPlayerSkin);
             DownloadOtherPlayerSkinCommand = new AsyncRelayCommand(DownloadOtherPlayerSkinAsync, CanDownloadOtherPlayerSkin);
+            RenameCommand = new AsyncRelayCommand(RenameAsync, CanUseAuthenticatedEndpoints);
 
             if (_converter is INotifyPropertyChanged npc)
                 npc.PropertyChanged += ConverterOnPropertyChanged;
@@ -113,6 +129,13 @@ namespace RefreshToAccess2.ViewModels
         {
             get => _profileName;
             set => SetField(ref _profileName, value);
+        }
+
+        /// <summary>New IGN entered by the user for the rename action.</summary>
+        public string NewName
+        {
+            get => _newName;
+            set => SetField(ref _newName, value);
         }
 
         public string ProfileId
@@ -135,6 +158,23 @@ namespace RefreshToAccess2.ViewModels
         {
             get => _statusMessage;
             set => SetField(ref _statusMessage, value);
+        }
+
+        /// <summary>
+        /// After a language switch, reset the idle status line to the localized
+        /// prompt. A transient operation message in flight is left untouched.
+        /// </summary>
+        public void RefreshLocalizedText()
+        {
+            if (!_converter.LoggedIn || string.IsNullOrWhiteSpace(_converter.AccessToken))
+                StatusMessage = Loc.T("Skin.Status.PreviewOrSignIn");
+
+            // Re-raise the option collections so ComboBox items re-run their
+            // localized templates/converter with the new language.
+            OnPropertyChanged(nameof(AvailableVariants));
+            OnPropertyChanged(nameof(AvailableAnimationModes));
+            OnPropertyChanged(nameof(AvailableBackgroundModes));
+            OnPropertyChanged(nameof(AvailablePanoramaPresets));
         }
 
         public string? LocalSkinPath
@@ -246,7 +286,7 @@ namespace RefreshToAccess2.ViewModels
         {
             if (!_converter.LoggedIn || string.IsNullOrWhiteSpace(_converter.AccessToken))
             {
-                ClearProfileState("Preview other players freely, or sign in to manage your own account skin.");
+                ClearProfileState(Loc.T("Skin.Status.PreviewOrSignIn"));
                 return;
             }
 
@@ -267,7 +307,7 @@ namespace RefreshToAccess2.ViewModels
 
             if (!_converter.LoggedIn || string.IsNullOrWhiteSpace(_converter.AccessToken))
             {
-                ClearProfileState("Preview other players freely, or sign in to manage your own account skin.");
+                ClearProfileState(Loc.T("Skin.Status.PreviewOrSignIn"));
                 return;
             }
 
@@ -307,6 +347,7 @@ namespace RefreshToAccess2.ViewModels
             ApplyUrlSkinCommand.NotifyCanExecuteChanged();
             PreviewOtherPlayerSkinCommand.NotifyCanExecuteChanged();
             DownloadOtherPlayerSkinCommand.NotifyCanExecuteChanged();
+            RenameCommand.NotifyCanExecuteChanged();
         }
 
         private string RequireAccessToken()
@@ -315,7 +356,7 @@ namespace RefreshToAccess2.ViewModels
                 return _converter.AccessToken;
 
             throw new InvalidOperationException(
-                "No Minecraft access token is available. Convert a refresh token first.");
+                Loc.T("Skin.Status.NoToken"));
         }
 
         public async Task RefreshProfileAsync()
@@ -326,9 +367,47 @@ namespace RefreshToAccess2.ViewModels
             try
             {
                 IsBusy = true;
-                StatusMessage = "Fetching current Minecraft profile...";
+                StatusMessage = Loc.T("Skin.Status.FetchingProfile");
                 await LoadProfileAsync();
-                StatusMessage = "Profile loaded.";
+                StatusMessage = Loc.T("Skin.Status.ProfileLoaded");
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = ToFriendlyError(ex);
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
+        public async Task RenameAsync()
+        {
+            if (IsBusy)
+                return;
+
+            string target = (NewName ?? string.Empty).Trim();
+
+            if (string.IsNullOrWhiteSpace(target) || target == ProfileName)
+            {
+                StatusMessage = Loc.T("Rename.Msg.NoChange");
+                return;
+            }
+
+            try
+            {
+                IsBusy = true;
+                StatusMessage = Loc.T("Skin.Status.Renaming");
+
+                string token = RequireAccessToken();
+                await IGNRenameService.RenameAsync(target, token);
+
+                // Reflect the new name everywhere it is shown.
+                _converter.ProfileName = target;
+                ProfileName = target;
+                NewName = string.Empty;
+
+                StatusMessage = Loc.T("Rename.Msg.Success", target);
             }
             catch (Exception ex)
             {
@@ -348,12 +427,12 @@ namespace RefreshToAccess2.ViewModels
             try
             {
                 IsBusy = true;
-                StatusMessage = "Fetching player skin...";
+                StatusMessage = Loc.T("Skin.Status.FetchingSkin");
 
                 bool success = await TryDownloadPreviewSkinAsync(CurrentSkinUrl);
                 StatusMessage = success
-                    ? "Player skin loaded."
-                    : "No active player skin URL is available.";
+                    ? Loc.T("Skin.Status.SkinLoaded")
+                    : Loc.T("Skin.Status.NoActiveSkin");
             }
             catch (Exception ex)
             {
@@ -373,14 +452,14 @@ namespace RefreshToAccess2.ViewModels
             try
             {
                 IsBusy = true;
-                StatusMessage = "Looking up player skin...";
+                StatusMessage = Loc.T("Skin.Status.LookingUp");
 
                 NamedPlayerSkinLookupResult lookup = await ResolveOtherPlayerSkinAsync();
 
                 PreviewSkinPng = await _skinService.DownloadSkinByUrlAsync(lookup.SkinUrl);
                 SelectedVariant = lookup.Variant;
 
-                StatusMessage = $"Loaded {lookup.Name}'s skin preview.";
+                StatusMessage = Loc.T("Skin.Status.LoadedPreview", lookup.Name);
             }
             catch (Exception ex)
             {
@@ -400,27 +479,27 @@ namespace RefreshToAccess2.ViewModels
             try
             {
                 IsBusy = true;
-                StatusMessage = "Resolving player skin...";
+                StatusMessage = Loc.T("Skin.Status.Resolving");
 
                 NamedPlayerSkinLookupResult lookup = await ResolveOtherPlayerSkinAsync();
 
                 SaveFileDialog dlg = new()
                 {
                     Filter = "PNG image (*.png)|*.png|All files (*.*)|*.*",
-                    Title = "Save player skin",
+                    Title = Loc.T("Skin.Status.SaveTitle"),
                     FileName = $"{SanitizeFileName(lookup.Name)}.png"
                 };
 
                 if (dlg.ShowDialog() != true)
                 {
-                    StatusMessage = "Download cancelled.";
+                    StatusMessage = Loc.T("Skin.Status.DownloadCancelled");
                     return;
                 }
 
                 byte[] png = await _skinService.DownloadSkinByUrlAsync(lookup.SkinUrl);
                 await File.WriteAllBytesAsync(dlg.FileName, png);
 
-                StatusMessage = $"Saved {lookup.Name}'s skin.";
+                StatusMessage = Loc.T("Skin.Status.Saved", lookup.Name);
             }
             catch (Exception ex)
             {
@@ -476,7 +555,7 @@ namespace RefreshToAccess2.ViewModels
             try
             {
                 IsBusy = true;
-                StatusMessage = "Uploading skin file...";
+                StatusMessage = Loc.T("Skin.Status.Uploading");
 
                 string token = RequireAccessToken();
                 await _skinService.SetSkinFromFileAsync(token, LocalSkinPath!, SelectedVariant);
@@ -484,7 +563,7 @@ namespace RefreshToAccess2.ViewModels
                 PreviewSkinPng = await File.ReadAllBytesAsync(LocalSkinPath!);
                 await LoadProfileAsync();
 
-                StatusMessage = "Skin uploaded successfully.";
+                StatusMessage = Loc.T("Skin.Status.Uploaded");
             }
             catch (Exception ex)
             {
@@ -504,7 +583,7 @@ namespace RefreshToAccess2.ViewModels
             try
             {
                 IsBusy = true;
-                StatusMessage = "Applying skin from URL...";
+                StatusMessage = Loc.T("Skin.Status.ApplyingUrl");
 
                 string token = RequireAccessToken();
                 await _skinService.SetSkinFromUrlAsync(token, RemoteSkinUrl!, SelectedVariant);
@@ -519,7 +598,7 @@ namespace RefreshToAccess2.ViewModels
 
                 await LoadProfileAsync();
 
-                StatusMessage = "Skin URL applied successfully.";
+                StatusMessage = Loc.T("Skin.Status.UrlApplied");
             }
             catch (Exception ex)
             {
@@ -536,7 +615,7 @@ namespace RefreshToAccess2.ViewModels
             OpenFileDialog dlg = new()
             {
                 Filter = "PNG skin (*.png)|*.png|All files (*.*)|*.*",
-                Title = "Select Minecraft Skin PNG"
+                Title = Loc.T("Skin.Status.SelectPng")
             };
 
             if (dlg.ShowDialog() == true)
@@ -577,7 +656,7 @@ namespace RefreshToAccess2.ViewModels
             string requestedName = OtherPlayerName?.Trim() ?? string.Empty;
 
             if (requestedName.Length == 0)
-                throw new InvalidOperationException("Enter a Minecraft player name.");
+                throw new InvalidOperationException(Loc.T("Skin.Status.EnterName"));
 
             if (_cachedOtherPlayerLookup != null &&
                 string.Equals(_cachedOtherPlayerLookupQuery, requestedName, StringComparison.OrdinalIgnoreCase))
@@ -638,19 +717,21 @@ namespace RefreshToAccess2.ViewModels
             string m = ex.Message;
 
             if (m.Contains("401") || m.Contains("403"))
-                return "The Minecraft access token is invalid or expired. Convert the refresh token again.";
+                return Loc.T("Skin.Status.InvalidToken");
 
             if (m.Contains("429"))
-                return "Minecraft Services is rate-limiting this account right now. Wait a moment and try again.";
+                return Loc.T("Skin.Status.RateLimited");
 
             if (m.Contains("was not found", StringComparison.OrdinalIgnoreCase))
                 return m;
 
-            if (m.Contains("Enter a Minecraft player name", StringComparison.OrdinalIgnoreCase))
+            // These markers are produced via Loc.T at the throw site, so compare
+            // against the same localized values to stay language-agnostic.
+            if (m == Loc.T("Skin.Status.EnterName"))
                 return m;
 
-            if (m.Contains("No Minecraft access token", StringComparison.OrdinalIgnoreCase))
-                return "Sign in first to manage your own account skin. Previewing other players works without login.";
+            if (m == Loc.T("Skin.Status.NoToken"))
+                return Loc.T("Skin.Status.SignInFirst");
 
             return m;
         }

@@ -1,3 +1,4 @@
+using RefreshToAccess2.Localization;
 using RefreshToAccess2.Models;
 using RefreshToAccess2.Services;
 using RefreshToAccess2.ViewModels;
@@ -82,9 +83,8 @@ namespace RefreshToAccess2.Views.Inject
                     _targetPid, out int port))
             {
                 MessageBox.Show(
-                    "Lost contact with the target process – " +
-                    "the process may have exited.",
-                    "Process not found",
+                    Loc.T("InjTok.Msg.LostContact"),
+                    Loc.T("InjTok.Msg.LostContactTitle"),
                     MessageBoxButton.OK,
                     MessageBoxImage.Warning);
                 return;
@@ -100,8 +100,8 @@ namespace RefreshToAccess2.Views.Inject
                 if (idx < 0 || idx >= _validTokens.Count)
                 {
                     MessageBox.Show(
-                        "Please select an account from the list.",
-                        "Nothing selected",
+                        Loc.T("InjTok.Msg.SelectAccount"),
+                        Loc.T("InjTok.Msg.NothingSelectedTitle"),
                         MessageBoxButton.OK,
                         MessageBoxImage.Information);
                     return;
@@ -118,8 +118,8 @@ namespace RefreshToAccess2.Views.Inject
                 if (string.IsNullOrEmpty(raw))
                 {
                     MessageBox.Show(
-                        "Please paste an access token first.",
-                        "Empty field",
+                        Loc.T("InjTok.Msg.PasteFirst"),
+                        Loc.T("InjTok.Msg.EmptyFieldTitle"),
                         MessageBoxButton.OK,
                         MessageBoxImage.Warning);
                     return;
@@ -135,9 +135,8 @@ namespace RefreshToAccess2.Views.Inject
                     if (exp < Helper.GetUnixTimeNative())
                     {
                         MessageBox.Show(
-                            "This token has already expired.\n" +
-                            "Injecting it will not result in a successful authentication.",
-                            "Expired token",
+                            Loc.T("InjTok.Msg.Expired"),
+                            Loc.T("InjTok.Msg.ExpiredTitle"),
                             MessageBoxButton.OK,
                             MessageBoxImage.Warning);
                         return;
@@ -148,10 +147,8 @@ namespace RefreshToAccess2.Views.Inject
                     // Token could not be decoded – warn but allow the user
                     // to override and inject anyway.
                     MessageBoxResult choice = MessageBox.Show(
-                        "Could not verify the token's expiry date.\n" +
-                        "It may be invalid or in an unexpected format.\n\n" +
-                        "Inject anyway?",
-                        "Unverified token",
+                        Loc.T("InjTok.Msg.Unverified"),
+                        Loc.T("InjTok.Msg.UnverifiedTitle"),
                         MessageBoxButton.YesNo,
                         MessageBoxImage.Question);
 

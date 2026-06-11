@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:helpers="clr-namespace:RefreshToAccess2.Helpers"
+             xmlns:loc="clr-namespace:RefreshToAccess2.Localization"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              mc:Ignorable="d"
@@ -17,10 +18,73 @@
             <Setter Property="Width" Value="32"/>
             <Setter Property="Height" Value="32"/>
             <Setter Property="Opacity" Value="0.7"/>
+            <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+            <Setter Property="RenderTransform">
+                <Setter.Value>
+                    <ScaleTransform ScaleX="1" ScaleY="1"/>
+                </Setter.Value>
+            </Setter>
             <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Opacity" Value="1"/>
-                </Trigger>
+                <EventTrigger RoutedEvent="MouseEnter">
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                             To="1" Duration="0:0:0.18"/>
+                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleX"
+                                             To="1.18" Duration="0:0:0.22">
+                                <DoubleAnimation.EasingFunction>
+                                    <BackEase EasingMode="EaseOut" Amplitude="0.5"/>
+                                </DoubleAnimation.EasingFunction>
+                            </DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleY"
+                                             To="1.18" Duration="0:0:0.22">
+                                <DoubleAnimation.EasingFunction>
+                                    <BackEase EasingMode="EaseOut" Amplitude="0.5"/>
+                                </DoubleAnimation.EasingFunction>
+                            </DoubleAnimation>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </EventTrigger>
+                <EventTrigger RoutedEvent="MouseLeave">
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                             To="0.7" Duration="0:0:0.22"/>
+                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleX"
+                                             To="1" Duration="0:0:0.25"/>
+                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleY"
+                                             To="1" Duration="0:0:0.25"/>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </EventTrigger>
+                <EventTrigger RoutedEvent="PreviewMouseLeftButtonDown">
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleX"
+                                             To="0.85" Duration="0:0:0.08"/>
+                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleY"
+                                             To="0.85" Duration="0:0:0.08"/>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </EventTrigger>
+                <EventTrigger RoutedEvent="PreviewMouseLeftButtonUp">
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleX"
+                                             To="1.18" Duration="0:0:0.28">
+                                <DoubleAnimation.EasingFunction>
+                                    <BackEase EasingMode="EaseOut" Amplitude="0.5"/>
+                                </DoubleAnimation.EasingFunction>
+                            </DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleY"
+                                             To="1.18" Duration="0:0:0.28">
+                                <DoubleAnimation.EasingFunction>
+                                    <BackEase EasingMode="EaseOut" Amplitude="0.5"/>
+                                </DoubleAnimation.EasingFunction>
+                            </DoubleAnimation>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </EventTrigger>
             </Style.Triggers>
         </Style>
 
@@ -59,6 +123,7 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <!-- ─────────────────────────────────────────────
@@ -71,35 +136,68 @@
                 </Grid.ColumnDefinitions>
 
                 <TextBlock Grid.Row="0"
-           Text="Token Converter"
+           Text="{loc:Tr Converter.Title}"
            Style="{StaticResource MaterialDesignHeadline5TextBlock}"
            Margin="0,0,0,20"/>
 
-                <!-- Client ID chip -->
-                <Border Grid.Column="1"
-                        VerticalAlignment="Center"
-                        CornerRadius="20"
-                        Padding="6,0,4,0"
-                        Height="40"
-                        Background="{DynamicResource MaterialDesign.Brush.Card.Background}"
-                        BorderBrush="{DynamicResource MaterialDesignDivider}"
-                        BorderThickness="1">
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <md:PackIcon Kind="ShieldKeyOutline"
-                                     Width="16" Height="16"
-                                     VerticalAlignment="Center"
-                                     Opacity="0.55"
-                                     Margin="6,0,8,0"/>
-                        <ComboBox SelectedIndex="{Binding SelectedClientIndex}"
-                                  SelectionChanged="OnClientSelectionChanged"
-                                  Style="{StaticResource MaterialDesignComboBox}"
-                                  FontSize="12.5"
-                                  MinWidth="130"
-                                  BorderThickness="0"
-                                  md:HintAssist.Hint="ClientID"
-                                  md:TextFieldAssist.DecorationVisibility="Collapsed"
-                                  md:TextFieldAssist.RippleOnFocusEnabled="True"
-                                  VerticalAlignment="Center">
+                <!-- Mode + Client ID chips -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+
+                    <!-- Conversion mode chip -->
+                    <Border VerticalAlignment="Center"
+                            CornerRadius="20"
+                            Padding="6,0,4,0"
+                            Height="40"
+                            Margin="0,0,10,0"
+                            Background="{DynamicResource MaterialDesign.Brush.Card.Background}"
+                            BorderBrush="{DynamicResource MaterialDesignDivider}"
+                            BorderThickness="1">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <md:PackIcon Kind="SwapHorizontal"
+                                         Width="16" Height="16"
+                                         VerticalAlignment="Center"
+                                         Opacity="0.55"
+                                         Margin="6,0,8,0"/>
+                            <ComboBox SelectedIndex="{Binding SelectedModeIndex}"
+                                      Style="{StaticResource MaterialDesignComboBox}"
+                                      FontSize="12.5"
+                                      MinWidth="150"
+                                      BorderThickness="0"
+                                      md:HintAssist.Hint="{loc:Tr Converter.ModeHint}"
+                                      md:TextFieldAssist.DecorationVisibility="Collapsed"
+                                      md:TextFieldAssist.RippleOnFocusEnabled="True"
+                                      VerticalAlignment="Center">
+                                <ComboBoxItem Content="{loc:Tr Converter.ModeRefresh}"/>
+                                <ComboBoxItem Content="{loc:Tr Converter.ModeCookie}"/>
+                            </ComboBox>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Client ID chip (refresh-token mode only) -->
+                    <Border VerticalAlignment="Center"
+                            CornerRadius="20"
+                            Padding="6,0,4,0"
+                            Height="40"
+                            Visibility="{Binding IsRefreshMode, Converter={StaticResource BoolVis}}"
+                            Background="{DynamicResource MaterialDesign.Brush.Card.Background}"
+                            BorderBrush="{DynamicResource MaterialDesignDivider}"
+                            BorderThickness="1">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <md:PackIcon Kind="ShieldKeyOutline"
+                                         Width="16" Height="16"
+                                         VerticalAlignment="Center"
+                                         Opacity="0.55"
+                                         Margin="6,0,8,0"/>
+                            <ComboBox SelectedIndex="{Binding SelectedClientIndex}"
+                                      SelectionChanged="OnClientSelectionChanged"
+                                      Style="{StaticResource MaterialDesignComboBox}"
+                                      FontSize="12.5"
+                                      MinWidth="130"
+                                      BorderThickness="0"
+                                      md:HintAssist.Hint="{loc:Tr Converter.ClientIdHint}"
+                                      md:TextFieldAssist.DecorationVisibility="Collapsed"
+                                      md:TextFieldAssist.RippleOnFocusEnabled="True"
+                                      VerticalAlignment="Center">
                             <ComboBoxItem Content="Vanilla"/>
                             <ComboBoxItem Content="HMCL"/>
                             <ComboBoxItem Content="PCL"/>
@@ -110,10 +208,11 @@
                             <ComboBoxItem Content="ksyz Alt Manager"/>
                             <ComboBoxItem Content="BakaXL"/>
                             <ComboBoxItem Content="LabyMod"/>
-                            <ComboBoxItem Content="Custom…"/>
+                            <ComboBoxItem Content="{loc:Tr Converter.ClientCustom}"/>
                         </ComboBox>
                     </StackPanel>
-                </Border>
+                    </Border>
+                </StackPanel>
             </Grid>
 
             <!-- ─────────────────────────────────────────────
@@ -147,11 +246,11 @@
                             <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
                                 <Button Content="{md:PackIcon Kind=ContentPaste, Size=18}"
                                         Style="{StaticResource SmallActionButton}"
-                                        ToolTip="Paste from clipboard"
+                                        ToolTip="{loc:Tr Converter.PasteTip}"
                                         Click="OnPasteRefreshToken"/>
                                 <Button Content="{md:PackIcon Kind=BackspaceOutline, Size=17}"
                                         Style="{StaticResource SmallActionButton}"
-                                        ToolTip="Clear"
+                                        ToolTip="{loc:Tr Converter.ClearTip}"
                                         Click="OnClearRefreshToken"
                                         Margin="2,0,0,0"/>
                             </StackPanel>
@@ -162,7 +261,7 @@
                                              VerticalAlignment="Center"
                                              Opacity="0.45"
                                              Margin="0,0,8,0"/>
-                                <TextBlock Text="REFRESH TOKEN"
+                                <TextBlock Text="{Binding InputSectionLabel}"
                                            Style="{StaticResource SectionLabel}"
                                            VerticalAlignment="Center"/>
                             </StackPanel>
@@ -171,7 +270,7 @@
                         <TextBox Grid.Row="1"
                                  Text="{Binding RefreshToken, UpdateSourceTrigger=PropertyChanged}"
                                  Style="{StaticResource TokenFieldStyle}"
-                                 md:HintAssist.Hint="Refresh Token"
+                                 md:HintAssist.Hint="{Binding InputHint}"
                                  MinHeight="160"
                                  MaxHeight="280"/>
 
@@ -182,7 +281,7 @@
                                    Opacity="0.3"
                                    FontFamily="Cascadia Mono, Consolas">
                             <Run Text="{Binding RefreshToken.Length, Mode=OneWay, FallbackValue=0}"/>
-                            <Run Text="chars"/>
+                            <Run Text="{loc:Tr Converter.Chars}"/>
                         </TextBlock>
                     </Grid>
                 </md:Card>
@@ -213,11 +312,11 @@
                             <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
                                 <Button Content="{md:PackIcon Kind=ContentCopy, Size=18}"
                                         Style="{StaticResource SmallActionButton}"
-                                        ToolTip="Copy to clipboard"
+                                        ToolTip="{loc:Tr Converter.CopyTip}"
                                         Click="OnCopyAccessToken"/>
                                 <Button Content="{md:PackIcon Kind=BackspaceOutline, Size=17}"
                                         Style="{StaticResource SmallActionButton}"
-                                        ToolTip="Clear"
+                                        ToolTip="{loc:Tr Converter.ClearTip}"
                                         Click="OnClearAccessToken"
                                         Margin="2,0,0,0"/>
                             </StackPanel>
@@ -228,7 +327,7 @@
                                              VerticalAlignment="Center"
                                              Opacity="0.45"
                                              Margin="0,0,8,0"/>
-                                <TextBlock Text="ACCESS TOKEN"
+                                <TextBlock Text="{loc:Tr Converter.AccessSection}"
                                            Style="{StaticResource SectionLabel}"
                                            VerticalAlignment="Center"/>
                             </StackPanel>
@@ -237,7 +336,7 @@
                         <TextBox Grid.Row="1"
                                  Text="{Binding AccessToken, UpdateSourceTrigger=PropertyChanged}"
                                  Style="{StaticResource TokenFieldStyle}"
-                                 md:HintAssist.Hint="Access Token"
+                                 md:HintAssist.Hint="{loc:Tr Converter.AccessHint}"
                                  IsReadOnly="True"
                                  MinHeight="160"
                                  MaxHeight="160"/>
@@ -249,7 +348,7 @@
                                    Opacity="0.3"
                                    FontFamily="Cascadia Mono, Consolas">
                             <Run Text="{Binding AccessToken.Length, Mode=OneWay, FallbackValue=0}"/>
-                            <Run Text="chars"/>
+                            <Run Text="{loc:Tr Converter.Chars}"/>
                         </TextBlock>
                     </Grid>
                 </md:Card>
@@ -281,7 +380,7 @@
 
                         <!-- Player text -->
                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock Text="PLAYER"
+                            <TextBlock Text="{loc:Tr Converter.Player}"
                                        Style="{StaticResource MicroLabel}"/>
                             <TextBlock Text="{Binding ProfileName, FallbackValue=—}"
                                        FontFamily="Cascadia Mono, Consolas"
@@ -293,7 +392,7 @@
                         <Button Grid.Column="2"
                                 Content="{md:PackIcon Kind=ContentCopy, Size=15}"
                                 Style="{StaticResource SmallActionButton}"
-                                ToolTip="Copy player name"
+                                ToolTip="{loc:Tr Converter.CopyNameTip}"
                                 Click="OnCopyProfileName"
                                 Width="28" Height="28"
                                 Margin="8,0,0,0"/>
@@ -317,7 +416,7 @@
 
                         <!-- UUID text -->
                         <StackPanel Grid.Column="5" VerticalAlignment="Center">
-                            <TextBlock Text="UUID"
+                            <TextBlock Text="{loc:Tr Converter.Uuid}"
                                        Style="{StaticResource MicroLabel}"/>
                             <TextBlock Text="{Binding PlayerUuid, FallbackValue=—}"
                                        FontFamily="Cascadia Mono, Consolas"
@@ -329,7 +428,7 @@
                         <Button Grid.Column="6"
                                 Content="{md:PackIcon Kind=ContentCopy, Size=15}"
                                 Style="{StaticResource SmallActionButton}"
-                                ToolTip="Copy UUID"
+                                ToolTip="{loc:Tr Converter.CopyUuidTip}"
                                 Click="OnCopyUuid"
                                 Width="28" Height="28"
                                 Margin="8,0,0,0"/>
@@ -352,6 +451,8 @@
                         md:ButtonAssist.CornerRadius="14"
                         md:ElevationAssist.Elevation="Dp3"
                         Style="{StaticResource MaterialDesignRaisedButton}"
+                        helpers:InteractionAnimation.Pop="True"
+                        helpers:InteractionAnimation.HoverScale="1.02"
                         FontSize="15"
                         FontWeight="SemiBold"
                         IsEnabled="{Binding IsBusy, Converter={StaticResource InvertBoolConverter}}"
@@ -375,14 +476,14 @@
                         Background="{DynamicResource MaterialDesign.Brush.Card.Background}"
                         BorderBrush="{DynamicResource MaterialDesignDivider}"
                         BorderThickness="1"
-                        ToolTip="Automatically copy the access token after conversion">
+                        ToolTip="{loc:Tr Converter.AutoCopyTip}">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                         <md:PackIcon Kind="ContentCopy"
                                      Width="16" Height="16"
                                      Opacity="0.4"
                                      VerticalAlignment="Center"
                                      Margin="0,0,10,0"/>
-                        <TextBlock Text="Auto-copy"
+                        <TextBlock Text="{loc:Tr Converter.AutoCopy}"
                                    FontSize="12.5"
                                    VerticalAlignment="Center"
                                    Opacity="0.65"
@@ -410,6 +511,61 @@
                            FontSize="12.5"
                            Style="{StaticResource MaterialDesignBody2TextBlock}"/>
             </StackPanel>
+
+            <!-- ─────────────────────────────────────────────
+                 TOKEN EXPIRY CHECK
+                 ───────────────────────────────────────────── -->
+            <Border Grid.Row="4"
+                    Margin="0,18,0,0"
+                    CornerRadius="14"
+                    Padding="20,16"
+                    Background="{DynamicResource MaterialDesign.Brush.Card.Background}">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                        <md:PackIcon Kind="ClockAlertOutline"
+                                     Width="18" Height="18"
+                                     VerticalAlignment="Center"
+                                     Opacity="0.45"
+                                     Margin="0,0,8,0"/>
+                        <TextBlock Text="{loc:Tr Converter.Expiry.Section}"
+                                   Style="{StaticResource SectionLabel}"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBox Grid.Column="0"
+                                 Text="{Binding ExpiryInput, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource TokenFieldStyle}"
+                                 md:HintAssist.Hint="{loc:Tr Converter.Expiry.InputHint}"
+                                 MinHeight="80"
+                                 MaxHeight="160"
+                                 VerticalAlignment="Top"/>
+
+                        <Button Grid.Column="1"
+                                Content="{loc:Tr Converter.Expiry.Check}"
+                                Style="{StaticResource MaterialDesignRaisedButton}"
+                                helpers:InteractionAnimation.Pop="True"
+                                Height="44"
+                                Padding="18,0"
+                                md:ButtonAssist.CornerRadius="12"
+                                VerticalAlignment="Top"
+                                Margin="12,2,0,0"
+                                ToolTip="{loc:Tr Converter.Expiry.Tip}"
+                                Click="OnCheckExpiry"/>
+                    </Grid>
+
+                    <TextBlock Text="{Binding ExpiryResult}"
+                               FontSize="13"
+                               Opacity="0.85"
+                               TextWrapping="Wrap"
+                               Margin="2,12,0,0"/>
+                </StackPanel>
+            </Border>
         </Grid>
     </ScrollViewer>
 </UserControl>

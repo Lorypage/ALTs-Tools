@@ -1,3 +1,4 @@
+using RefreshToAccess2.Localization;
 using RefreshToAccess2.Models;
 using RefreshToAccess2.Services;
 using System;
@@ -96,12 +97,25 @@ namespace RefreshToAccess2.ViewModels
         public bool HasSelection => _selectionCount > 0;
 
         public string SelectionLabel =>
-            _selectionCount > 0 ? $"Delete ({_selectionCount})" : "Delete";
+            _selectionCount > 0 ? Loc.T("AltMgr.DeleteCount", _selectionCount) : Loc.T("AltMgr.Delete");
 
         public int TotalCount
         {
             get => _totalCount;
-            private set => SetField(ref _totalCount, value);
+            private set
+            {
+                if (SetField(ref _totalCount, value))
+                    OnPropertyChanged(nameof(AccountCountText));
+            }
+        }
+
+        public string AccountCountText => Loc.T("AltMgr.AccountCount", _totalCount);
+
+        /// <summary>Re-raises localized text properties after a language switch.</summary>
+        public void RefreshLocalizedText()
+        {
+            OnPropertyChanged(nameof(SelectionLabel));
+            OnPropertyChanged(nameof(AccountCountText));
         }
 
         public bool IsEmpty => DisplayItems.Count == 0;
@@ -270,8 +284,8 @@ namespace RefreshToAccess2.ViewModels
         {
             var sel = SelectedProfiles();
             if (sel.Count == 0) return;
-            if (MessageBox.Show($"Permanently delete {sel.Count} selected account(s)?",
-                    "Confirm", MessageBoxButton.YesNo, MessageBoxImage.Warning)
+            if (MessageBox.Show(Loc.T("AltMgr.ConfirmDeleteSelected", sel.Count),
+                    Loc.T("Common.Confirm"), MessageBoxButton.YesNo, MessageBoxImage.Warning)
                 != MessageBoxResult.Yes) return;
             foreach (var s in sel) _master.Remove(s);
             Save();
@@ -280,8 +294,8 @@ namespace RefreshToAccess2.ViewModels
         public void DeleteAll()
         {
             if (_master.Count == 0) return;
-            if (MessageBox.Show("Permanently delete ALL stored accounts?",
-                    "Confirm", MessageBoxButton.YesNo, MessageBoxImage.Warning)
+            if (MessageBox.Show(Loc.T("AltMgr.ConfirmDeleteAll"),
+                    Loc.T("Common.Confirm"), MessageBoxButton.YesNo, MessageBoxImage.Warning)
                 != MessageBoxResult.Yes) return;
             _master.Clear();
             RegistryService.Write("ProfileDataList", "");
