@@ -16,7 +16,7 @@
 <img src="https://img.shields.io/badge/platform-Windows%2010%20%7C%2011-0078D6.svg?style=flat-square&logo=windows&logoColor=white" alt="platform"/>
 <img src="https://img.shields.io/badge/.NET-8.0--windows-512BD4.svg?style=flat-square&logo=dotnet&logoColor=white" alt=".NET 8"/>
 <img src="https://img.shields.io/badge/UI-WPF%20·%20MaterialDesign-2D7D9A.svg?style=flat-square" alt="UI"/>
-<img src="https://img.shields.io/badge/version-1.0-blue.svg?style=flat-square" alt="version"/>
+<img src="https://img.shields.io/badge/version-1.0.1-blue.svg?style=flat-square" alt="version"/>
 
 <br/>
 <br/>
