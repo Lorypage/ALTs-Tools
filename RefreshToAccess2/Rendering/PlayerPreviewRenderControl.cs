@@ -269,9 +269,19 @@ namespace RefreshToAccess2.Rendering
                 new uint[] { 0u });
         }
 
+        // ~60 FPS. The renderer is fully time-step (dt) based, so this only
+        // caps how often we draw — the animation speed is unchanged. The old
+        // 1 ms period drove ~1000 redraws/sec, pegging a CPU core and flooding
+        // the WPF dispatcher (which made the entire UI feel sluggish).
+        private const int FrameIntervalMs = 16;
+
         private void StartRenderLoop()
         {
             _renderLoopActive = true;
+
+            // Reset the dt baseline so a long pause (page hidden) doesn't
+            // produce one giant time-step that snaps the animation forward.
+            _lastTicks = _clock.ElapsedMilliseconds;
 
             if (_frameTimer == null)
             {
@@ -279,11 +289,11 @@ namespace RefreshToAccess2.Rendering
                     OnFrameTimerTick,
                     null,
                     0,
-                    1);
+                    FrameIntervalMs);
             }
             else
             {
-                _frameTimer.Change(0, 1);
+                _frameTimer.Change(0, FrameIntervalMs);
             }
         }
 
@@ -408,7 +418,13 @@ namespace RefreshToAccess2.Rendering
 
                 _initialized = true;
                 _lastTicks = _clock.ElapsedMilliseconds;
-                StartRenderLoop();
+
+                // Only spin up the render loop if we're actually on-screen.
+                // When the Skin page is collapsed, VisibleChanged will start it
+                // once the page is shown — otherwise we'd burn CPU rendering a
+                // hidden control for the whole session.
+                if (Visible)
+                    StartRenderLoop();
             }
             catch
             {

@@ -430,8 +430,8 @@ namespace RefreshToAccess2.Views
 
         private void Copy(string val, string label)
         {
-            try { Clipboard.SetText(val); _snack.Enqueue(Loc.T("AltMgr.Copied", label)); }
-            catch { _snack.Enqueue(Loc.T("AltMgr.ClipboardError")); }
+            if (Clipboard.TrySetText(val)) _snack.Enqueue(Loc.T("AltMgr.Copied", label));
+            else _snack.Enqueue(Loc.T("AltMgr.ClipboardError"));
         }
 
         private static int CidToIdx(string? n)
