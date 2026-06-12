@@ -8,7 +8,7 @@
 
 #### A nicer multi-account (ALT) manager for Minecraft players
 
-<p>All in one place — <b>Token Conversion</b> · <b>Account Management</b> · <b>Injection</b> · <b>Player Profile (Skin &amp; Rename)</b> · <b>Multi-language</b></p>
+<p>All in one place — <b>Token Conversion</b> · <b>Account Management</b> · <b>Injection</b> · <b>Player Profile (Skin &amp; Rename)</b>
 
 <br/>
 
