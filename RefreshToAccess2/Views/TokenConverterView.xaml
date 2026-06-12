@@ -115,7 +115,8 @@
     </UserControl.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto"
-                  HorizontalScrollBarVisibility="Disabled">
+                  HorizontalScrollBarVisibility="Disabled"
+                  helpers:SmoothScroll.IsEnabled="True">
 
         <Grid Margin="36,24,36,28">
             <Grid.RowDefinitions>

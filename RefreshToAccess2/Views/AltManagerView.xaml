@@ -331,6 +331,7 @@
                 <!-- Card view -->
                 <ScrollViewer VerticalScrollBarVisibility="Auto"
                               HorizontalScrollBarVisibility="Disabled"
+                              helpers:SmoothScroll.IsEnabled="True"
                               Padding="4,0"
                               Visibility="{Binding IsCardView, Converter={StaticResource BoolVis}}">
                     <ItemsControl ItemsSource="{Binding DisplayItems}"
@@ -348,6 +349,7 @@
                 <ScrollViewer x:Name="ListScrollViewer"
                               VerticalScrollBarVisibility="Auto"
                               HorizontalScrollBarVisibility="Disabled"
+                              helpers:SmoothScroll.IsEnabled="True"
                               Visibility="{Binding IsListView, Converter={StaticResource BoolVis}}">
                     <ItemsControl ItemsSource="{Binding DisplayItems}"
                                   ItemTemplate="{StaticResource ListTpl}"

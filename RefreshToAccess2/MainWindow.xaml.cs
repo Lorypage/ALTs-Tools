@@ -29,6 +29,7 @@ namespace RefreshToAccess2
 
         private UIElement[] _pages = Array.Empty<UIElement>();
         private bool _suppressSelectionChanged;
+        private int _currentPageIndex = -1;
 
         public bool IsRailExpanded
         {
@@ -96,6 +97,9 @@ namespace RefreshToAccess2
 
         private void ShowPage(int index)
         {
+            int previous = _currentPageIndex;
+            _currentPageIndex = index;
+
             foreach (UIElement page in _pages)
             {
                 page.Visibility = Visibility.Collapsed;
@@ -110,15 +114,19 @@ namespace RefreshToAccess2
                 // see the new generation and re-animate.
                 Helpers.EntranceAnimation.BumpGeneration();
 
+                // Slide direction follows nav travel: moving down the rail
+                // slides the page up from below, moving up slides from above.
+                double fromY = previous >= 0 && index < previous ? -28 : 28;
+
                 targetPage.Opacity = 0;
                 targetPage.Visibility = Visibility.Visible;
 
                 if (targetPage.RenderTransform is System.Windows.Media.TranslateTransform transform)
                 {
-                    transform.Y = 20;
+                    transform.Y = fromY;
                 }
 
-                AnimatePageIn(targetPage);
+                AnimatePageIn(targetPage, fromY);
             }
         }
         private void OnToggleRail(object sender, RoutedEventArgs e)
@@ -146,10 +154,12 @@ namespace RefreshToAccess2
                 : MaterialDesignThemes.Wpf.PackIconKind.Menu;
         }
 
-        private void AnimatePageIn(UIElement element)
+        private void AnimatePageIn(UIElement element, double fromY)
         {
-            QuadraticEase ease = new() { EasingMode = EasingMode.EaseOut };
-            TimeSpan duration = TimeSpan.FromMilliseconds(300);
+            // Eased glide for the slide, soft fade for the opacity.
+            var slideEase = new QuinticEase { EasingMode = EasingMode.EaseOut };
+            var fadeEase = new QuadraticEase { EasingMode = EasingMode.EaseOut };
+            TimeSpan duration = TimeSpan.FromMilliseconds(340);
 
             Storyboard sb = new();
 
@@ -158,7 +168,7 @@ namespace RefreshToAccess2
                 From = 0,
                 To = 1,
                 Duration = duration,
-                EasingFunction = ease
+                EasingFunction = fadeEase
             };
             Storyboard.SetTarget(fadeAnim, element);
             Storyboard.SetTargetProperty(fadeAnim, new PropertyPath(UIElement.OpacityProperty));
@@ -166,10 +176,10 @@ namespace RefreshToAccess2
 
             DoubleAnimation floatAnim = new()
             {
-                From = 20,
+                From = fromY,
                 To = 0,
                 Duration = duration,
-                EasingFunction = ease
+                EasingFunction = slideEase
             };
             Storyboard.SetTarget(floatAnim, element);
             Storyboard.SetTargetProperty(floatAnim,
