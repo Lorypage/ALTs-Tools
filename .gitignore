@@ -365,3 +365,29 @@ FodyWeavers.xsd
 # JetBrains Rider / IntelliJ IDEA
 .idea/
 *.sln.iml
+
+# ──────────────────────────────────────────────────────────────
+# Project-specific
+# ──────────────────────────────────────────────────────────────
+
+# Publish / build output (compiled exe, bundled runtime DLLs, installer script)
+output/
+pubs/
+publish/
+
+# Claude Code working directory
+.claude/
+
+# Release notes (generated / not version-controlled)
+RELEASE_NOTES.md
+
+# WebView2 per-user data folder (created at runtime by the MS login window)
+WebView2/
+
+# Visual Studio solution user options
+*.slnx.user
+
+# OS clutter
+[Tt]humbs.db
+[Dd]esktop.ini
+.DS_Store

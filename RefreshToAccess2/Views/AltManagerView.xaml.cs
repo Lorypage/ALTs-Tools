@@ -328,6 +328,64 @@ namespace RefreshToAccess2.Views
         }
 
         // ══════════════════════════════════════════════════════════
+        //   LOGIN (activate account for inject + profile editing)
+        // ══════════════════════════════════════════════════════════
+
+        private bool _detailActionBusy;
+
+        /// <summary>
+        /// Logs the detail account in: refreshes its access token from the stored
+        /// refresh token, writes it back to the profile, and pushes it into the
+        /// Converter so BOTH the injector (reads stored profiles) and the skin /
+        /// profile editor (reads Converter.AccessToken) can use it immediately —
+        /// without navigating away from the Alt Manager.
+        /// </summary>
+        private async void OnDetailLogin(object sender, RoutedEventArgs e)
+        {
+            if (VM?.DetailItem is null || RootVM is null || _detailActionBusy) return;
+            _detailActionBusy = true;
+            try
+            {
+                var card = VM.DetailItem;
+
+                if (string.IsNullOrEmpty(card.RefToken) || card.RefToken == "N/A")
+                { _snack.Enqueue(Loc.T("AltMgr.NoRefreshToken")); return; }
+
+                _snack.Enqueue(Loc.T("AltMgr.LoggingIn"));
+
+                string token;
+                try
+                {
+                    token = await VM.ActivateAsync(card.Block,
+                        new Progress<string>(m => _snack.Enqueue(m)));
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(
+                        Loc.T("AltMgr.LoginFailed", ex.Message),
+                        Loc.T("Common.Error"), MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                // Make this the "current" account for the skin / profile editor.
+                // The injector reads the refreshed token straight from the
+                // stored profile list (updated by ActivateAsync above).
+                var conv = RootVM.Converter;
+                conv.AccessToken = token;
+                conv.ProfileName = card.IGN;
+                conv.PlayerUuid  = card.UUID;
+                conv.LoggedIn    = true;
+
+                _ = card.RefreshHeadAsync();
+                _snack.Enqueue(Loc.T("AltMgr.LoginSuccess", card.IGN));
+            }
+            finally
+            {
+                _detailActionBusy = false;
+            }
+        }
+
+        // ══════════════════════════════════════════════════════════
         //   SETTINGS ACTIONS
         // ══════════════════════════════════════════════════════════
 
@@ -349,6 +407,73 @@ namespace RefreshToAccess2.Views
         private void OnDeselectAll(object s, RoutedEventArgs e) => VM?.DeselectAll();
         private void OnDeleteSelected(object s, RoutedEventArgs e) => VM?.DeleteSelected();
         private void OnDeleteAll(object s, RoutedEventArgs e) => VM?.DeleteAll();
+
+        // ══════════════════════════════════════════════════════════
+        //   MICROSOFT LOGIN
+        // ══════════════════════════════════════════════════════════
+
+        private bool _msLoginBusy;
+
+        private async void OnMicrosoftLogin(object sender, RoutedEventArgs e)
+        {
+            if (VM is null || _msLoginBusy) return;
+            _msLoginBusy = true;
+            try
+            {
+                // Vanilla legacy MSA client → produces M.C5... refresh tokens.
+                var client = ClientIdentification.Vanilla;
+
+                var win = new Dialogs.MicrosoftLoginWindow(client)
+                {
+                    Owner = Window.GetWindow(this)
+                };
+
+                bool? ok = win.ShowDialog();
+                if (ok != true || string.IsNullOrEmpty(win.AuthCode))
+                {
+                    _snack.Enqueue(Loc.T("AltMgr.MsLoginCancelled"));
+                    return;
+                }
+
+                _snack.Enqueue(Loc.T("AltMgr.MsLoginProgress"));
+
+                // code → refresh token → full Minecraft auth chain
+                string refresh = await MSLoginService.ExchangeCodeForRefreshTokenAsync(
+                    win.AuthCode, client);
+
+                string[] result = await MSLoginService.RequestTokenAsync(refresh, client);
+
+                var block = new ProfileDataBlock
+                {
+                    loginDate   = DateTime.Now.ToString(@"yyyy/MM/dd HH:mm:ss"),
+                    profileData = new ProfileData
+                    {
+                        IGN      = result[0],
+                        UUID     = result[1],
+                        RefToken = refresh,
+                        AccToken = result[2],
+                        ClientId = "Vanilla"
+                    }
+                };
+
+                var kept = VM.AddProfile(block);
+                _snack.Enqueue(Loc.T("AltMgr.MsLoginSuccess", result[0]));
+
+                // Fetch the head skin for the new card in the background.
+                if (VM.DisplayItems.FirstOrDefault(i => i.Block == kept) is { } card)
+                    _ = card.RefreshHeadAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    Loc.T("AltMgr.MsLoginFailed", ex.Message),
+                    Loc.T("Common.Error"), MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                _msLoginBusy = false;
+            }
+        }
 
         // ══════════════════════════════════════════════════════════
         //   EXPORT / IMPORT

@@ -62,6 +62,25 @@ namespace RefreshToAccess2.Models
         public ProfileCardItem(ProfileDataBlock block) => Block = block;
 
         /// <summary>
+        /// Re-raises all computed display properties. Call after the underlying
+        /// <see cref="Block"/> data changes (e.g. after a token refresh / login)
+        /// so the card and detail overlay reflect the new values.
+        /// </summary>
+        public void RaiseAllChanged()
+        {
+            OnPropertyChanged(nameof(IGN));
+            OnPropertyChanged(nameof(LoginDate));
+            OnPropertyChanged(nameof(UUID));
+            OnPropertyChanged(nameof(UUIDShort));
+            OnPropertyChanged(nameof(ClientId));
+            OnPropertyChanged(nameof(RefToken));
+            OnPropertyChanged(nameof(RefShort));
+            OnPropertyChanged(nameof(AccToken));
+            OnPropertyChanged(nameof(AccShort));
+            OnPropertyChanged(nameof(Initial));
+        }
+
+        /// <summary>
         /// Load head from base64 cache in the profile block,
         /// or fetch from Mojang if missing. Non-blocking.
         /// </summary>

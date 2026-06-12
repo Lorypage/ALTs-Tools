@@ -440,5 +440,22 @@ namespace RefreshToAccess2.ViewModels
 
             return ClientMap[SelectedClientIndex];
         }
+
+        /// <summary>
+        /// Maps a stored profile's <c>ClientId</c> display name (e.g. "Vanilla",
+        /// "HMCL") back to its <see cref="ClientIdentification"/>. Falls back to
+        /// <see cref="ClientIdentification.Vanilla"/> when the name is unknown,
+        /// empty, or "Custom" (whose secret isn't persisted with the profile).
+        /// </summary>
+        public static ClientIdentification ResolveClientByName(string? name)
+        {
+            if (string.IsNullOrWhiteSpace(name)) return ClientIdentification.Vanilla;
+
+            for (int i = 0; i < ClientMap.Length; i++)
+                if (string.Equals(ClientNames[i], name, StringComparison.OrdinalIgnoreCase))
+                    return ClientMap[i];
+
+            return ClientIdentification.Vanilla;
+        }
     }
 }

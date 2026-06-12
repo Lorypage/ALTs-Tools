@@ -22,6 +22,76 @@ namespace RefreshToAccess2.Services
             PooledConnectionLifetime = TimeSpan.FromMinutes(5)
         });
 
+        // ── OAuth endpoints ────────────────────────────────────────────
+
+        /// <summary>Desktop redirect registered for the legacy MSA clients.</summary>
+        public const string RedirectUri =
+            "https://login.live.com/oauth20_desktop.srf";
+
+        private const string AuthorizeEndpoint =
+            "https://login.live.com/oauth20_authorize.srf";
+
+        private const string TokenEndpoint =
+            "https://login.live.com/oauth20_token.srf";
+
+        /// <summary>
+        /// Builds the Microsoft authorization URL the login window navigates to.
+        /// On success Microsoft redirects to <see cref="RedirectUri"/> with a
+        /// <c>?code=</c> query parameter that <see cref="ExchangeCodeForRefreshTokenAsync"/>
+        /// trades for a refresh token.
+        /// </summary>
+        public static string BuildAuthorizeUrl(ClientIdentification client)
+        {
+            var query = new Dictionary<string, string>
+            {
+                ["client_id"]     = client.ClientId,
+                ["response_type"] = "code",
+                ["redirect_uri"]  = RedirectUri,
+                ["scope"]         = client.Scope,
+                // Always show the account chooser so a different account can be
+                // added even when the embedded browser already has a session.
+                ["prompt"]        = "select_account"
+            };
+
+            var sb = new StringBuilder(AuthorizeEndpoint);
+            sb.Append('?');
+            bool first = true;
+            foreach (var kv in query)
+            {
+                if (!first) sb.Append('&');
+                first = false;
+                sb.Append(Uri.EscapeDataString(kv.Key))
+                  .Append('=')
+                  .Append(Uri.EscapeDataString(kv.Value));
+            }
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// Exchanges an authorization <paramref name="code"/> (captured from the
+        /// login redirect) for a Microsoft refresh token, using the same client
+        /// the authorize URL was built with.
+        /// </summary>
+        public static async Task<string> ExchangeCodeForRefreshTokenAsync(
+            string code, ClientIdentification client)
+        {
+            var form = new Dictionary<string, string>
+            {
+                ["client_id"]    = client.ClientId,
+                ["code"]         = code,
+                ["grant_type"]   = "authorization_code",
+                ["redirect_uri"] = RedirectUri,
+                ["scope"]        = client.Scope
+            };
+
+            var resp = await _http.PostAsync(
+                TokenEndpoint, new FormUrlEncodedContent(form));
+
+            resp.EnsureSuccessStatusCode();
+            var body = JObject.Parse(await resp.Content.ReadAsStringAsync());
+            return body["refresh_token"]!.ToString();
+        }
+
         // ── Public entry point ─────────────────────────────────────────
 
         /// <returns>[username, uuid, accessToken]</returns>

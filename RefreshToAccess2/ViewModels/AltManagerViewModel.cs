@@ -304,6 +304,63 @@ namespace RefreshToAccess2.ViewModels
         public void Save() => ProfileService.Save(new List<ProfileDataBlock>(_master));
 
         /// <summary>
+        /// Adds a freshly-created profile (e.g. from Microsoft login) to the
+        /// master list, removes duplicates, and persists. Returns the de-duped
+        /// block kept for this account so callers can act on it (e.g. load head).
+        /// </summary>
+        public ProfileDataBlock AddProfile(ProfileDataBlock block)
+        {
+            _master.Add(block);
+
+            var deduped = ProfileService.RemoveDuplicates(_master.ToList());
+            _master.Clear();
+            foreach (var b in deduped) _master.Add(b);
+
+            Save();
+
+            // The kept block may be a different instance after de-dup; match by IGN.
+            string ign = block.profileData?.IGN ?? "";
+            return _master.FirstOrDefault(
+                b => string.Equals(b.profileData?.IGN, ign,
+                        StringComparison.OrdinalIgnoreCase)) ?? block;
+        }
+
+        /// <summary>
+        /// "Logs in" a stored account: uses its refresh token to obtain a fresh
+        /// Minecraft access token (the stored one expires after ~24h), writes the
+        /// refreshed IGN / UUID / access token back into the block, and persists.
+        /// </summary>
+        /// <returns>The fresh access token.</returns>
+        /// <exception cref="InvalidOperationException">No refresh token stored.</exception>
+        public async Task<string> ActivateAsync(
+            ProfileDataBlock block, IProgress<string>? progress = null)
+        {
+            var data = block.profileData
+                ?? throw new InvalidOperationException(Loc.T("AltMgr.NoRefreshToken"));
+
+            if (string.IsNullOrWhiteSpace(data.RefToken) || data.RefToken == "N/A")
+                throw new InvalidOperationException(Loc.T("AltMgr.NoRefreshToken"));
+
+            var client = ViewModels.TokenConverterViewModel.ResolveClientByName(data.ClientId);
+
+            // [name, uuid, accessToken]
+            string[] result = await MSLoginService.RequestTokenAsync(
+                data.RefToken, client, progress);
+
+            data.IGN      = result[0];
+            data.UUID     = result[1];
+            data.AccToken = result[2];
+
+            Save();
+
+            // Refresh the card's bound fields if it's currently displayed.
+            if (_cardCache.TryGetValue(block, out var card))
+                card.RaiseAllChanged();
+
+            return result[2];
+        }
+
+        /// <summary>
         /// Force an immediate save (call when navigating away, etc.).
         /// Stops any pending debounced head-save timer.
         /// </summary>

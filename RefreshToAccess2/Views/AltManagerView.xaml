@@ -272,6 +272,19 @@
                     <StackPanel Grid.Column="3" Orientation="Horizontal"
                                 VerticalAlignment="Center">
 
+                        <Button Style="{StaticResource MaterialDesignRaisedButton}"
+                                Height="38" Margin="0,0,8,0"
+                                md:ButtonAssist.CornerRadius="19"
+                                helpers:InteractionAnimation.Pop="True"
+                                Click="OnMicrosoftLogin" ToolTip="{loc:Tr AltMgr.MsLoginTip}">
+                            <StackPanel Orientation="Horizontal">
+                                <md:PackIcon Kind="Microsoft" Width="18" Height="18"
+                                             VerticalAlignment="Center"/>
+                                <TextBlock Text="{loc:Tr AltMgr.MsLogin}" Margin="6,0,0,0"
+                                           VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+
                         <Button Style="{StaticResource MaterialDesignOutlinedButton}"
                                 Height="38" Margin="0,0,8,0"
                                 helpers:InteractionAnimation.Pop="True"
@@ -693,15 +706,26 @@
                         <Button Style="{StaticResource MaterialDesignRaisedButton}"
                                 Height="40" Padding="18,0" md:ButtonAssist.CornerRadius="20"
                                 helpers:InteractionAnimation.Pop="True"
-                                Click="OnDetailRefresh" ToolTip="{loc:Tr AltMgr.RefreshTokenTip}">
+                                Click="OnDetailLogin" ToolTip="{loc:Tr AltMgr.LoginTip}">
                             <StackPanel Orientation="Horizontal">
-                                <md:PackIcon Kind="Refresh" Width="19" Height="19" VerticalAlignment="Center"/>
-                                <TextBlock Text="{loc:Tr AltMgr.RefreshToken}" Margin="7,0,0,0"
+                                <md:PackIcon Kind="LoginVariant" Width="19" Height="19" VerticalAlignment="Center"/>
+                                <TextBlock Text="{loc:Tr AltMgr.Login}" Margin="7,0,0,0"
                                            VerticalAlignment="Center" FontWeight="Medium"/>
                             </StackPanel>
                         </Button>
                         <Button Style="{StaticResource MaterialDesignOutlinedButton}"
-                                Height="40" Padding="18,0" Margin="10,0,0,0"
+                                Height="40" Padding="16,0" Margin="10,0,0,0"
+                                md:ButtonAssist.CornerRadius="20"
+                                helpers:InteractionAnimation.Pop="True"
+                                Click="OnDetailRefresh" ToolTip="{loc:Tr AltMgr.RefreshTokenTip}">
+                            <StackPanel Orientation="Horizontal">
+                                <md:PackIcon Kind="Refresh" Width="18" Height="18" VerticalAlignment="Center"/>
+                                <TextBlock Text="{loc:Tr AltMgr.RefreshToken}" Margin="7,0,0,0"
+                                           VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource MaterialDesignOutlinedButton}"
+                                Height="40" Padding="16,0" Margin="10,0,0,0"
                                 helpers:InteractionAnimation.Pop="True"
                                 md:ButtonAssist.CornerRadius="20" Click="OnCopyAll" ToolTip="{loc:Tr AltMgr.CopyAllTip}">
                             <StackPanel Orientation="Horizontal">
