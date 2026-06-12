@@ -7,7 +7,7 @@ namespace RefreshToAccess2.Localization
         private static void AddCommonZh(Dictionary<string, string> d)
         {
             // Window
-            d["Window.Title"] = "ALTs Tools 2.3";
+            d["Window.Title"] = "ALTs Tools";
 
             // Navigation
             d["Nav.Converter"] = "转换器";
@@ -32,6 +32,11 @@ namespace RefreshToAccess2.Localization
             d["Common.Success"] = "成功";
             d["Common.Warning"] = "警告";
             d["Common.Ready"] = "就绪。";
+            d["Common.OK"] = "确定";
+            d["Common.Yes"] = "是";
+            d["Common.No"] = "否";
+            d["Common.Information"] = "信息";
+            d["Common.Confirm.Title"] = "确认";
 
             // Settings page
             d["Settings.Title"] = "设置";

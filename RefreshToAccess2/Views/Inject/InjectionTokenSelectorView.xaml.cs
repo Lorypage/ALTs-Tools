@@ -1,3 +1,5 @@
+using MaterialDesignThemes.Wpf;
+using RefreshToAccess2.Helpers;
 using RefreshToAccess2.Localization;
 using RefreshToAccess2.Models;
 using RefreshToAccess2.Services;
@@ -5,15 +7,21 @@ using RefreshToAccess2.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Windows;
+using System.Windows.Controls;
 
 namespace RefreshToAccess2.Views.Inject
 {
-    public partial class InjectionTokenSelectorView : Window
+    /// <summary>
+    /// In-app token-selection dialog, hosted inside the root DialogHost.
+    /// </summary>
+    public partial class InjectionTokenSelectorView : UserControl
     {
+        private const string InnerHost = "InjTokenDialog";
+
         // ── State ──────────────────────────────────────────────────────
 
-        private readonly int                   _targetPid;
-        private readonly MainViewModel         _rootVm;
+        private readonly int _targetPid;
+        private readonly MainViewModel _rootVm;
 
         // Parallel list: index matches StoredTokenComboBox.SelectedIndex.
         // Each entry holds the IGN (display) and the corresponding AccToken.
@@ -26,7 +34,10 @@ namespace RefreshToAccess2.Views.Inject
             InitializeComponent();
 
             _targetPid = targetPid;
-            _rootVm    = (MainViewModel)Application.Current.MainWindow.DataContext;
+            _rootVm = (MainViewModel)Application.Current.MainWindow.DataContext;
+
+            Loaded += (_, _) => AppMessageBox.PushHost(InnerHost);
+            Unloaded += (_, _) => AppMessageBox.PopHost(InnerHost);
 
             PopulateStoredTokens();
         }
@@ -40,7 +51,7 @@ namespace RefreshToAccess2.Views.Inject
             foreach (ProfileDataBlock block in _rootVm.AltManager.AllProfiles())
             {
                 string? token = block.profileData?.AccToken;
-                string? ign   = block.profileData?.IGN;
+                string? ign = block.profileData?.IGN;
 
                 if (string.IsNullOrEmpty(token) || string.IsNullOrEmpty(ign))
                     continue;
@@ -48,9 +59,6 @@ namespace RefreshToAccess2.Views.Inject
                 // Skip tokens that have already expired.
                 try
                 {
-                    // JWTDecode.GetDecodedJWTExpDate is your existing helper –
-                    // leave the call as-is; it lives in the Crypto namespace
-                    // that you said is already implemented.
                     ulong exp = Convert.ToUInt64(
                         RefreshToAccess2.Crypto.JWTDecode
                             .GetDecodedJWTExpDate(token));
@@ -71,9 +79,14 @@ namespace RefreshToAccess2.Views.Inject
             foreach (var (ign, _) in _validTokens)
                 displayNames.Add(ign);
 
-            StoredTokenComboBox.ItemsSource   = displayNames;
+            StoredTokenComboBox.ItemsSource = displayNames;
             StoredTokenComboBox.SelectedIndex = displayNames.Count > 0 ? 0 : -1;
         }
+
+        // ── Close button ───────────────────────────────────────────────
+
+        private void OnClose(object sender, RoutedEventArgs e)
+            => DialogHost.CloseDialogCommand.Execute(false, this);
 
         // ── Inject button ──────────────────────────────────────────────
 
@@ -160,7 +173,7 @@ namespace RefreshToAccess2.Views.Inject
 
             if (tokenToInject is null) return;
 
-            // Disable the button to prevent double-clicks.
+            // Disable the controls to prevent double-clicks.
             IsEnabled = false;
 
             try

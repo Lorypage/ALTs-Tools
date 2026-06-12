@@ -1,3 +1,4 @@
+using RefreshToAccess2.Helpers;
 using RefreshToAccess2.ViewModels;
 using RefreshToAccess2.Views.Dialogs;
 using System;
@@ -62,15 +63,13 @@ namespace RefreshToAccess2.Views
 
         // ── Client-ID selection ────────────────────────────────────────
 
-        private void OnClientSelectionChanged(object sender, SelectionChangedEventArgs e)
+        private async void OnClientSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (VM.SelectedClientIndex == 10)
             {
-                var dlg = new CustomClientIdDialog(VM)
-                {
-                    Owner = Window.GetWindow(this)
-                };
-                dlg.ShowDialog();
+                var dlg = new CustomClientIdDialog(VM);
+                await MaterialDesignThemes.Wpf.DialogHost.Show(
+                    dlg, AppMessageBox.RootDialogIdentifier);
             }
         }
 

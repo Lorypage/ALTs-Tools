@@ -1,14 +1,22 @@
+using MaterialDesignThemes.Wpf;
+using RefreshToAccess2.Helpers;
 using RefreshToAccess2.Localization;
 using RefreshToAccess2.Services;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Windows;
+using System.Windows.Controls;
 
 namespace RefreshToAccess2.Views.Inject
 {
-    public partial class MinecraftProcSelectorView : Window
+    /// <summary>
+    /// In-app Minecraft process selector, hosted inside the root DialogHost.
+    /// </summary>
+    public partial class MinecraftProcSelectorView : UserControl
     {
+        private const string InnerHost = "ProcSelectorDialog";
+
         // Parallel list that keeps the actual Process objects in sync with
         // the display strings shown in the combo box.
         private readonly List<Process> _processes = new();
@@ -16,6 +24,10 @@ namespace RefreshToAccess2.Views.Inject
         public MinecraftProcSelectorView()
         {
             InitializeComponent();
+
+            Loaded += (_, _) => AppMessageBox.PushHost(InnerHost);
+            Unloaded += (_, _) => AppMessageBox.PopHost(InnerHost);
+
             LoadProcesses();
         }
 
@@ -46,7 +58,7 @@ namespace RefreshToAccess2.Views.Inject
                     Loc.T("Common.Error"), MessageBoxButton.OK, MessageBoxImage.Error);
             }
 
-            ProcComboBox.ItemsSource   = items;
+            ProcComboBox.ItemsSource = items;
             ProcComboBox.SelectedIndex = items.Count > 0 ? 0 : -1;
         }
 
@@ -54,6 +66,9 @@ namespace RefreshToAccess2.Views.Inject
 
         private void OnRefresh(object sender, RoutedEventArgs e)
             => LoadProcesses();
+
+        private void OnCancel(object sender, RoutedEventArgs e)
+            => DialogHost.CloseDialogCommand.Execute(false, this);
 
         private async void OnConfirm(object sender, RoutedEventArgs e)
         {
@@ -101,14 +116,12 @@ namespace RefreshToAccess2.Views.Inject
                 }
             }
 
-            // Open the token-selection dialog and hide this window.
-            var tokenSelector = new InjectionTokenSelectorView(target.Id)
-            {
-                Owner = this
-            };
-            Hide();
-            tokenSelector.ShowDialog();
-            Close();
+            // Open the token-selection dialog nested on this dialog's own host,
+            // then close ourselves once the user is done with it.
+            var tokenSelector = new InjectionTokenSelectorView(target.Id);
+            await DialogHost.Show(tokenSelector, InnerHost);
+
+            DialogHost.CloseDialogCommand.Execute(true, this);
         }
     }
 }

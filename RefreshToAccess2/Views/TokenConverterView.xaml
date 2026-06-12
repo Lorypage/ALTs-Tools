@@ -516,7 +516,7 @@
                  TOKEN EXPIRY CHECK
                  ───────────────────────────────────────────── -->
             <Border Grid.Row="4"
-                    Margin="0,18,0,0"
+                    Margin="0,6,0,0"
                     CornerRadius="14"
                     Padding="20,16"
                     Background="{DynamicResource MaterialDesign.Brush.Card.Background}">

@@ -1,16 +1,12 @@
-<Window x:Class="RefreshToAccess2.Views.Dialogs.CustomClientIdDialog"
+<UserControl x:Class="RefreshToAccess2.Views.Dialogs.CustomClientIdDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:helpers="clr-namespace:RefreshToAccess2.Helpers"
         xmlns:loc="clr-namespace:RefreshToAccess2.Localization"
-        Style="{StaticResource MaterialDesignWindow}"
-        Title="{loc:Tr CustomClient.Title}"
-        Width="540" Height="320" SizeToContent="Height"
-        ResizeMode="NoResize"
-        WindowStartupLocation="CenterOwner"
-        ShowInTaskbar="False">
+        MaxWidth="540" MinWidth="480">
 
+    <md:DialogHost Identifier="CustomClientDialog" DialogTheme="Inherit">
     <StackPanel Margin="28">
 
         <TextBlock Text="{loc:Tr CustomClient.Title}"
@@ -42,4 +38,5 @@
                     Click="OnConfirm"/>
         </StackPanel>
     </StackPanel>
-</Window>
+    </md:DialogHost>
+</UserControl>

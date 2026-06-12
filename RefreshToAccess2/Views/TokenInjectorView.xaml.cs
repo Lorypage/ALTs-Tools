@@ -19,7 +19,7 @@ namespace RefreshToAccess2.Views
 
         // ── Open process selector ──────────────────────────────────────
 
-        private void OnOpenProcSelector(object sender, RoutedEventArgs e)
+        private async void OnOpenProcSelector(object sender, RoutedEventArgs e)
         {
             if (!MainWindow.InjectInitSuccess)
             {
@@ -29,11 +29,9 @@ namespace RefreshToAccess2.Views
                 return;
             }
 
-            var selector = new MinecraftProcSelectorView
-            {
-                Owner = Window.GetWindow(this)
-            };
-            selector.ShowDialog();
+            var selector = new MinecraftProcSelectorView();
+            await MaterialDesignThemes.Wpf.DialogHost.Show(
+                selector, Helpers.AppMessageBox.RootDialogIdentifier);
         }
 
         // ── Status label fade-in ───────────────────────────────────────

@@ -7,7 +7,7 @@ namespace RefreshToAccess2.Localization
         private static void AddCommonEn(Dictionary<string, string> d)
         {
             // Window
-            d["Window.Title"] = "ALTs Tools 2.3";
+            d["Window.Title"] = "ALTs Tools";
 
             // Navigation
             d["Nav.Converter"] = "Converter";
@@ -32,6 +32,11 @@ namespace RefreshToAccess2.Localization
             d["Common.Success"] = "Success";
             d["Common.Warning"] = "Warning";
             d["Common.Ready"] = "Ready.";
+            d["Common.OK"] = "OK";
+            d["Common.Yes"] = "Yes";
+            d["Common.No"] = "No";
+            d["Common.Information"] = "Information";
+            d["Common.Confirm.Title"] = "Confirm";
 
             // Settings page
             d["Settings.Title"] = "Settings";

@@ -97,6 +97,9 @@
         </DataTemplate>
     </Window.Resources>
 
+    <md:DialogHost Identifier="RootDialog"
+                   DialogTheme="Inherit"
+                   CloseOnClickAway="False">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition x:Name="NavColumn" Width="80"/>
@@ -220,4 +223,5 @@
 
         </Grid>
     </Grid>
+    </md:DialogHost>
 </Window>
