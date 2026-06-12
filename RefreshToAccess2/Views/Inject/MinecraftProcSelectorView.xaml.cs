@@ -21,9 +21,18 @@ namespace RefreshToAccess2.Views.Inject
         // the display strings shown in the combo box.
         private readonly List<Process> _processes = new();
 
-        public MinecraftProcSelectorView()
+        // Optional access token supplied up front on the injector page. When
+        // set it is forwarded to the token selector so the user can inject it
+        // directly; null means the normal stored-token flow.
+        private readonly string? _prefilledToken;
+
+        public MinecraftProcSelectorView() : this(null) { }
+
+        public MinecraftProcSelectorView(string? prefilledToken)
         {
             InitializeComponent();
+
+            _prefilledToken = prefilledToken;
 
             Loaded += (_, _) => AppMessageBox.PushHost(InnerHost);
             Unloaded += (_, _) => AppMessageBox.PopHost(InnerHost);
@@ -118,7 +127,7 @@ namespace RefreshToAccess2.Views.Inject
 
             // Open the token-selection dialog nested on this dialog's own host,
             // then close ourselves once the user is done with it.
-            var tokenSelector = new InjectionTokenSelectorView(target.Id);
+            var tokenSelector = new InjectionTokenSelectorView(target.Id, _prefilledToken);
             await DialogHost.Show(tokenSelector, InnerHost);
 
             DialogHost.CloseDialogCommand.Execute(true, this);

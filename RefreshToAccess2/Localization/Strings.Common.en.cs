@@ -62,6 +62,8 @@ namespace RefreshToAccess2.Localization
             d["Injector.Title"] = "Token Injector";
             d["Injector.Desc"] = "Select a running Minecraft process and inject the current access token into it. Make sure you have converted a valid token before injecting.";
             d["Injector.OpenSelector"] = "Open Process Selector";
+            d["Injector.TokenHint"] = "Access token (optional) – leave empty to pick a stored account";
+            d["Injector.TokenInvalid"] = "The access token could not be decoded. It may be invalid or in an unexpected format.";
 
             // Minecraft process selector
             d["ProcSel.Title"] = "Select Minecraft Process";

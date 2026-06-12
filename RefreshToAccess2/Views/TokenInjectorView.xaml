@@ -15,23 +15,42 @@
         <TextBlock Grid.Row="0"
                    Text="{loc:Tr Injector.Title}"
                    Style="{StaticResource MaterialDesignHeadline5TextBlock}"
+                   HorizontalAlignment="Center"
                    Margin="0,0,0,20"/>
 
         <!-- Injector host panel – your existing MinecraftProcSelector
              content can be embedded here as a UserControl, or you can
              open the dialog from the button below exactly as before.    -->
         <StackPanel Grid.Row="1"
-                    VerticalAlignment="Top"
-                    HorizontalAlignment="Left">
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Center">
 
             <TextBlock TextWrapping="Wrap"
-                       MaxWidth="560"
+                       MaxWidth="600"
+                       HorizontalAlignment="Center"
+                       TextAlignment="Center"
                        Margin="0,0,0,24"
                        Style="{StaticResource MaterialDesignBody1TextBlock}"
                        Text="{loc:Tr Injector.Desc}"/>
 
+            <!-- Optional access-token entry. When filled in, it is validated
+                 and injected directly; when empty the normal flow runs.       -->
+            <TextBox x:Name="AccessTokenBox"
+                     Width="600"
+                     MinHeight="96"
+                     HorizontalAlignment="Center"
+                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                     md:HintAssist.Hint="{loc:Tr Injector.TokenHint}"
+                     FontFamily="Consolas"
+                     TextWrapping="Wrap"
+                     AcceptsReturn="True"
+                     VerticalScrollBarVisibility="Auto"
+                     VerticalContentAlignment="Top"
+                     Margin="0,0,0,20"/>
+
             <Button Content="{loc:Tr Injector.OpenSelector}"
-                    Width="220" Height="44"
+                    Width="240" Height="46"
+                    HorizontalAlignment="Center"
                     md:ButtonAssist.CornerRadius="8"
                     helpers:InteractionAnimation.Pop="True"
                     Click="OnOpenProcSelector"/>
@@ -39,6 +58,8 @@
             <!-- Status feedback -->
             <TextBlock x:Name="InjectorStatus"
                        Margin="0,16,0,0"
+                       HorizontalAlignment="Center"
+                       TextAlignment="Center"
                        Style="{StaticResource MaterialDesignBody2TextBlock}"
                        Opacity="0"/>
         </StackPanel>

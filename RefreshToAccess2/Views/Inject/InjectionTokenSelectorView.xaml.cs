@@ -29,7 +29,9 @@ namespace RefreshToAccess2.Views.Inject
 
         // ── Constructor ────────────────────────────────────────────────
 
-        public InjectionTokenSelectorView(int targetPid)
+        public InjectionTokenSelectorView(int targetPid) : this(targetPid, null) { }
+
+        public InjectionTokenSelectorView(int targetPid, string? prefilledToken)
         {
             InitializeComponent();
 
@@ -40,6 +42,15 @@ namespace RefreshToAccess2.Views.Inject
             Unloaded += (_, _) => AppMessageBox.PopHost(InnerHost);
 
             PopulateStoredTokens();
+
+            // A token supplied on the injector page is already validated –
+            // pre-fill the custom-token tab and switch to it so the user only
+            // has to confirm the injection.
+            if (!string.IsNullOrEmpty(prefilledToken))
+            {
+                CustomTokenBox.Text = prefilledToken;
+                SelectorTab.SelectedIndex = 1;
+            }
         }
 
         // ── Stored-token list ──────────────────────────────────────────

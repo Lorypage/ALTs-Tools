@@ -62,6 +62,8 @@ namespace RefreshToAccess2.Localization
             d["Injector.Title"] = "令牌注入器";
             d["Injector.Desc"] = "选择一个正在运行的 Minecraft 进程，并将当前访问令牌注入其中。注入前请确保已转换出有效的令牌。";
             d["Injector.OpenSelector"] = "打开进程选择器";
+            d["Injector.TokenHint"] = "访问令牌（可选）——留空则从已保存的账号中选择";
+            d["Injector.TokenInvalid"] = "无法解码该访问令牌。它可能无效或格式异常。";
 
             // Minecraft process selector
             d["ProcSel.Title"] = "选择 Minecraft 进程";
