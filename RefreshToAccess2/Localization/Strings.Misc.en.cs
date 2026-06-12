@@ -91,6 +91,25 @@ namespace RefreshToAccess2.Localization
             // ── Helper.PopException ──
             // {0}=message {1}=source {2}=stack {3}=inner {4}=target
             d["Helper.Exception"] = "An exception occurred:\nMessage: {0}\n\nSource: {1}\n\nStackTrace: {2}\n\nInnerException: {3}\n\nTargetSite: {4}";
+
+            // ── Auto-update ──
+            d["Update.Title"] = "Update available";
+            // {0}=current {1}=latest
+            d["Update.VersionLine"] = "You're on {0}, the latest is {1}. Update now?";
+            d["Update.NoNotes"] = "(No release notes were provided for this update.)";
+            d["Update.Now"] = "Update now";
+            d["Update.Later"] = "Later";
+            d["Update.Downloading"] = "Downloading update…";
+            // {0}=percent
+            d["Update.DownloadingPct"] = "Downloading update… {0}%";
+            d["Update.Restarting"] = "Download complete, restarting to apply…";
+            // {0}=error
+            d["Update.Failed"] = "Update failed:\n{0}";
+            d["Update.CheckFailed"] = "Couldn't check for updates. Please check your internet connection and try again later.";
+            d["Update.RateLimited"] = "GitHub is temporarily rate-limiting update checks (too many requests from your network). Please try again in a little while.";
+            d["Update.NoRelease"] = "No published release was found to update to.";
+            // {0}=current
+            d["Update.UpToDate"] = "You're already on the latest version ({0}).";
         }
     }
 }

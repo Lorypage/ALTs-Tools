@@ -8,6 +8,9 @@ namespace RefreshToAccess2.Localization
         {
             // Window
             d["Window.Title"] = "ALTs Tools";
+            d["Window.Minimize"] = "最小化";
+            d["Window.Maximize"] = "最大化";
+            d["Window.Close"] = "关闭";
 
             // Navigation
             d["Nav.Converter"] = "转换器";
@@ -50,6 +53,10 @@ namespace RefreshToAccess2.Localization
             d["Settings.AccentColor"] = "主题色";
             d["Settings.Dynamic"] = "动态取色（来自壁纸）";
             d["Settings.DynamicTip"] = "从桌面壁纸自动生成主题色";
+            d["Settings.Updates"] = "更新";
+            d["Settings.UpdatesDesc"] = "保持 ALTs Tools 为最新版本。";
+            d["Settings.AutoCheckUpdates"] = "启动时检查更新";
+            d["Settings.CheckNow"] = "立即检查更新";
 
             // Token Injector view
             d["Injector.Title"] = "令牌注入器";

@@ -22,6 +22,13 @@ namespace RefreshToAccess2.Theming
 
         public static ThemeManager Instance { get; } = new();
 
+        /// <summary>
+        /// Raised after the theme (base/accent) has been applied. The custom
+        /// title bar listens to this to re-colour the DWM caption/border, which
+        /// otherwise keeps the colour it was given at startup.
+        /// </summary>
+        public event EventHandler? ThemeChanged;
+
         private readonly PaletteHelper _palette = new();
 
         private bool _isDark;
@@ -122,6 +129,8 @@ namespace RefreshToAccess2.Theming
             theme.SetSecondaryColor(accent);
 
             _palette.SetTheme(theme);
+
+            ThemeChanged?.Invoke(this, EventArgs.Empty);
         }
     }
 

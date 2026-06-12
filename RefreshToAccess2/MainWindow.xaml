@@ -12,13 +12,27 @@
         mc:Ignorable="d"
         Style="{StaticResource MaterialDesignWindow}"
         Background="{DynamicResource MaterialDesign.Brush.Background}"
+        FontFamily="{StaticResource AppFont}"
+        TextElement.FontFamily="{StaticResource AppFont}"
+        TextOptions.TextFormattingMode="Ideal"
+        TextOptions.TextRenderingMode="ClearType"
         Title="{loc:Tr Window.Title}"
+        Icon="pack://application:,,,/coolpig.ico"
         Height="680" Width="1235"
         MinHeight="600" MinWidth="860"
         WindowStartupLocation="CenterScreen"
-        SourceInitialized="OnSourceInitialized"        
+        SourceInitialized="OnSourceInitialized"
         PreviewKeyDown="OnPreviewKeyDown"
+        StateChanged="OnWindowStateChanged"
         Closing="OnWindowClosing">
+
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="44"
+                      ResizeBorderThickness="6"
+                      CornerRadius="0"
+                      GlassFrameThickness="0"
+                      UseAeroCaptionButtons="False"/>
+    </WindowChrome.WindowChrome>
 
     <Window.Resources>
         <DataTemplate DataType="{x:Type local:NavItem}">
@@ -33,6 +47,59 @@
         </DataTemplate>
         <BooleanToVisibilityConverter x:Key="BoolVis"/>
         <helpers:InvertBoolConverter x:Key="InvertBoolConverter"/>
+
+        <!-- Caption (window control) buttons: flat, square, hover-highlight.
+             WindowChrome.IsHitTestVisibleInChrome lets clicks through the
+             transparent drag region down to these buttons. -->
+        <Style x:Key="CaptionButton" TargetType="Button">
+            <Setter Property="Width" Value="46"/>
+            <Setter Property="Height" Value="44"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Foreground" Value="{DynamicResource MaterialDesign.Brush.Foreground}"/>
+            <Setter Property="WindowChrome.IsHitTestVisibleInChrome" Value="True"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bg" Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bg" Property="Background"
+                                        Value="{DynamicResource MaterialDesign.Brush.Card.Background}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="CloseCaptionButton" TargetType="Button"
+               BasedOn="{StaticResource CaptionButton}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bg" Background="{TemplateBinding Background}">
+                            <md:PackIcon x:Name="Icon"
+                                         Kind="Close"
+                                         Width="16" Height="16"
+                                         HorizontalAlignment="Center"
+                                         VerticalAlignment="Center"
+                                         Foreground="{TemplateBinding Foreground}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bg" Property="Background" Value="#E81123"/>
+                                <Setter TargetName="Icon" Property="Foreground" Value="White"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
 
         <x:Array x:Key="NavItems" Type="{x:Type local:NavItem}">
             <local:NavItem LabelKey="Nav.Converter"
@@ -100,7 +167,65 @@
     <md:DialogHost Identifier="RootDialog"
                    DialogTheme="Inherit"
                    CloseOnClickAway="False">
-    <Grid>
+    <Grid x:Name="RootLayout">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="44"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- ───── Custom title bar (drag region + caption buttons) ───── -->
+        <Grid Grid.Row="0"
+              x:Name="TitleBar"
+              Background="{DynamicResource MaterialDesign.Brush.Background}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- App identity -->
+            <StackPanel Grid.Column="0"
+                        Orientation="Horizontal"
+                        Margin="14,0,0,0"
+                        VerticalAlignment="Center">
+                <Image Source="pack://application:,,,/coolpig.ico"
+                       Width="18" Height="18"
+                       VerticalAlignment="Center"
+                       RenderOptions.BitmapScalingMode="HighQuality"/>
+                <TextBlock Text="{loc:Tr Window.Title}"
+                           Margin="10,0,0,0"
+                           FontSize="12.5"
+                           FontWeight="Medium"
+                           Opacity="0.75"
+                           VerticalAlignment="Center"/>
+            </StackPanel>
+
+            <!-- Caption buttons -->
+            <StackPanel Grid.Column="2"
+                        Orientation="Horizontal"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Right">
+                <Button x:Name="MinimizeButton"
+                        Style="{StaticResource CaptionButton}"
+                        Click="OnMinimizeClick"
+                        ToolTip="{loc:Tr Window.Minimize}">
+                    <md:PackIcon Kind="WindowMinimize" Width="16" Height="16"/>
+                </Button>
+                <Button x:Name="MaximizeButton"
+                        Style="{StaticResource CaptionButton}"
+                        Click="OnMaximizeClick"
+                        ToolTip="{loc:Tr Window.Maximize}">
+                    <md:PackIcon x:Name="MaximizeIcon" Kind="WindowMaximize" Width="15" Height="15"/>
+                </Button>
+                <Button x:Name="CloseButton"
+                        Style="{StaticResource CloseCaptionButton}"
+                        Click="OnCloseClick"
+                        ToolTip="{loc:Tr Window.Close}"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- ───── App body ───── -->
+        <Grid Grid.Row="1">
         <Grid.ColumnDefinitions>
             <ColumnDefinition x:Name="NavColumn" Width="80"/>
             <ColumnDefinition Width="*"/>
@@ -222,6 +347,7 @@
             </views:SettingsView>
 
         </Grid>
+    </Grid>
     </Grid>
     </md:DialogHost>
 </Window>

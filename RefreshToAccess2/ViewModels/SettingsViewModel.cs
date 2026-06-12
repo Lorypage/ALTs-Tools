@@ -1,5 +1,8 @@
 using System.Collections.Generic;
+using System.Windows.Input;
+using RefreshToAccess2.Helpers;
 using RefreshToAccess2.Localization;
+using RefreshToAccess2.Services;
 using RefreshToAccess2.Theming;
 
 namespace RefreshToAccess2.ViewModels
@@ -26,6 +29,7 @@ namespace RefreshToAccess2.ViewModels
         private bool _isDarkMode;
         private AccentColor _selectedAccent;
         private bool _isDynamic;
+        private bool _autoCheckUpdates;
 
         public SettingsViewModel()
         {
@@ -35,6 +39,9 @@ namespace RefreshToAccess2.ViewModels
             _isDarkMode = ThemeManager.Instance.IsDark;
             _selectedAccent = FindAccent(ThemeManager.Instance.AccentHex);
             _isDynamic = ThemeManager.Instance.IsDynamic;
+            _autoCheckUpdates = UpdateService.AutoCheckEnabled;
+
+            CheckUpdatesCommand = new AsyncRelayCommand(CheckUpdatesAsync);
         }
 
         public LanguageOption SelectedLanguage
@@ -109,5 +116,24 @@ namespace RefreshToAccess2.ViewModels
                     return a;
             return ThemeManager.Accents[0];
         }
+
+        // ── Updates ────────────────────────────────────────────────
+
+        /// <summary>Whether the app checks GitHub for a newer release on startup.</summary>
+        public bool AutoCheckUpdates
+        {
+            get => _autoCheckUpdates;
+            set
+            {
+                if (!SetField(ref _autoCheckUpdates, value)) return;
+                UpdateService.AutoCheckEnabled = value;
+            }
+        }
+
+        /// <summary>Manual "check for updates now" trigger.</summary>
+        public ICommand CheckUpdatesCommand { get; }
+
+        private static Task CheckUpdatesAsync()
+            => UpdateService.ShowUpdateFlowAsync(manual: true);
     }
 }

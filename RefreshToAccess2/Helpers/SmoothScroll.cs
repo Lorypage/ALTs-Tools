@@ -1,26 +1,34 @@
 using System;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Media.Animation;
+using System.Windows.Media;
 
 namespace RefreshToAccess2.Helpers
 {
     /// <summary>
     /// Attached behaviour that turns the default "step" mouse-wheel scrolling
-    /// of a <see cref="ScrollViewer"/> into an animated, eased glide.
+    /// of a <see cref="ScrollViewer"/> into a brief eased glide.
     ///
-    /// WPF's stock wheel handling jumps the offset in discrete chunks with no
-    /// interpolation, which feels choppy. Here we intercept the wheel, keep a
-    /// running target offset, and animate a proxy property that drives
-    /// <see cref="ScrollViewer.ScrollToVerticalOffset"/> each frame.
+    /// Rather than animating a proxy dependency property (which snaps back to its
+    /// base value when the animation ends, and fights itself on rapid scrolls),
+    /// this drives <see cref="ScrollViewer.ScrollToVerticalOffset"/> directly each
+    /// frame via <see cref="CompositionTarget.Rendering"/>, moving the live offset
+    /// toward a running target. There is no proxy value to fall back to, so the
+    /// view never jumps back to where the scroll started.
     /// </summary>
     public static class SmoothScroll
     {
-        // Pixels travelled per wheel notch. A notch is 120 delta units.
-        private const double WheelStep = 90.0;
-        private static readonly Duration GlideDuration =
-            new Duration(TimeSpan.FromMilliseconds(380));
+        // Pixels travelled per wheel notch (a notch is 120 delta units).
+        private const double WheelStep = 60.0;
+        // Fraction of the remaining distance covered per frame. Higher = snappier
+        // / less "floaty". Lower = smoother but slower to settle.
+        private const double Approach = 0.34;
+        // Minimum pixels per frame so the tail doesn't crawl.
+        private const double MinStep = 2.0;
+        // Within this distance we snap to the target and stop animating.
+        private const double SnapEpsilon = 0.5;
 
         // ── IsEnabled ───────────────────────────────────────────────
         public static readonly DependencyProperty IsEnabledProperty =
@@ -31,17 +39,15 @@ namespace RefreshToAccess2.Helpers
         public static bool GetIsEnabled(DependencyObject d) => (bool)d.GetValue(IsEnabledProperty);
         public static void SetIsEnabled(DependencyObject d, bool v) => d.SetValue(IsEnabledProperty, v);
 
-        // ── Proxy offset that we actually animate ───────────────────
-        private static readonly DependencyProperty VerticalOffsetProperty =
+        // Running target offset the live position is gliding toward.
+        private static readonly DependencyProperty TargetProperty =
             DependencyProperty.RegisterAttached(
-                "VerticalOffset", typeof(double), typeof(SmoothScroll),
-                new PropertyMetadata(0.0, OnVerticalOffsetChanged));
-
-        // Where the in-flight animation is heading, so successive notches stack.
-        private static readonly DependencyProperty TargetOffsetProperty =
-            DependencyProperty.RegisterAttached(
-                "TargetOffset", typeof(double), typeof(SmoothScroll),
+                "Target", typeof(double), typeof(SmoothScroll),
                 new PropertyMetadata(0.0));
+
+        // ScrollViewers currently mid-glide, driven by one shared per-frame hook.
+        private static readonly HashSet<ScrollViewer> _active = new();
+        private static bool _hooked;
 
         private static void OnIsEnabledChanged(
             DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -49,9 +55,17 @@ namespace RefreshToAccess2.Helpers
             if (d is not ScrollViewer sv) return;
 
             if ((bool)e.NewValue)
+            {
+                // Pixel-based scrolling so offsets are in device pixels, not items
+                // — required for the per-frame interpolation to look smooth.
+                sv.CanContentScroll = false;
                 sv.PreviewMouseWheel += OnPreviewMouseWheel;
+            }
             else
+            {
                 sv.PreviewMouseWheel -= OnPreviewMouseWheel;
+                _active.Remove(sv);
+            }
         }
 
         private static void OnPreviewMouseWheel(object sender, MouseWheelEventArgs e)
@@ -59,45 +73,70 @@ namespace RefreshToAccess2.Helpers
             if (sender is not ScrollViewer sv) return;
             if (e.Handled) return;
 
-            // Let Ctrl+wheel (zoom etc.) and horizontal cases fall through.
+            // Let Ctrl+wheel (zoom etc.) fall through.
             if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control)) return;
 
-            // Seed the target from the live offset the first time, or whenever
-            // the user dragged the thumb / scrolled by other means in between.
-            double current = (double)sv.GetValue(TargetOffsetProperty);
-            if (Math.Abs(sv.VerticalOffset - (double)sv.GetValue(VerticalOffsetProperty)) > 1.0)
-                current = sv.VerticalOffset;
+            // Continue stacking onto the in-flight target; otherwise (re)seed from
+            // the live offset so dragging the thumb in between is respected.
+            double baseOffset = _active.Contains(sv)
+                ? (double)sv.GetValue(TargetProperty)
+                : sv.VerticalOffset;
 
-            double target = current - (e.Delta / 120.0) * WheelStep;
+            double target = baseOffset - (e.Delta / 120.0) * WheelStep;
             target = Math.Max(0, Math.Min(target, sv.ScrollableHeight));
 
-            // At a boundary with nowhere to go — release the event to let an
-            // outer ScrollViewer (if any) take over instead of swallowing it.
+            // At a boundary with nowhere to go — release the event so an outer
+            // ScrollViewer (if any) can take over instead of swallowing it.
             bool atTop = target <= 0 && e.Delta > 0;
             bool atBottom = target >= sv.ScrollableHeight && e.Delta < 0;
             if ((atTop || atBottom) && Math.Abs(target - sv.VerticalOffset) < 0.5)
                 return;
 
-            sv.SetValue(TargetOffsetProperty, target);
-            sv.SetValue(VerticalOffsetProperty, sv.VerticalOffset);
-
-            var anim = new DoubleAnimation
-            {
-                To = target,
-                Duration = GlideDuration,
-                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut },
-                FillBehavior = FillBehavior.Stop
-            };
-
-            sv.BeginAnimation(VerticalOffsetProperty, anim);
+            sv.SetValue(TargetProperty, target);
+            _active.Add(sv);
+            EnsureHook();
             e.Handled = true;
         }
 
-        private static void OnVerticalOffsetChanged(
-            DependencyObject d, DependencyPropertyChangedEventArgs e)
+        private static void EnsureHook()
         {
-            if (d is ScrollViewer sv)
-                sv.ScrollToVerticalOffset((double)e.NewValue);
+            if (_hooked) return;
+            CompositionTarget.Rendering += OnRendering;
+            _hooked = true;
+        }
+
+        private static void OnRendering(object? sender, EventArgs e)
+        {
+            if (_active.Count == 0)
+            {
+                CompositionTarget.Rendering -= OnRendering;
+                _hooked = false;
+                return;
+            }
+
+            // Snapshot so we can remove finished viewers while iterating.
+            var svs = new ScrollViewer[_active.Count];
+            _active.CopyTo(svs);
+
+            foreach (var sv in svs)
+            {
+                double target = (double)sv.GetValue(TargetProperty);
+                double current = sv.VerticalOffset;
+                double diff = target - current;
+
+                if (Math.Abs(diff) <= SnapEpsilon)
+                {
+                    sv.ScrollToVerticalOffset(target);
+                    _active.Remove(sv);
+                    continue;
+                }
+
+                double step = diff * Approach;
+                if (Math.Abs(step) < MinStep)
+                    step = Math.Sign(diff) * Math.Min(MinStep, Math.Abs(diff));
+
+                sv.ScrollToVerticalOffset(current + step);
+            }
         }
     }
 }

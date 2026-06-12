@@ -19,6 +19,9 @@ namespace RefreshToAccess2.Helpers
         // Title bar & border colour (Win 11 22000+ — silently ignored on Win 10)
         private const int DWMWA_BORDER_COLOR  = 34;
         private const int DWMWA_CAPTION_COLOR = 35;
+        // Rounded-corner preference (Win 11 22000+ — silently ignored on Win 10)
+        private const int DWMWA_WINDOW_CORNER_PREFERENCE = 33;
+        private const int DWMWCP_ROUND = 2; // standard Win 11 rounded corners
 
         /// <summary>
         /// Colours the native title bar and border to match the
@@ -47,6 +50,13 @@ namespace RefreshToAccess2.Helpers
                     ref colRef, sizeof(int));
                 DwmSetWindowAttribute(hwnd, DWMWA_BORDER_COLOR,
                     ref colRef, sizeof(int));
+
+                // Ask DWM to round the window corners (Win 11 only). The system
+                // clips the corners itself, so it works with WebView2 / D3D
+                // content that breaks under AllowsTransparency.
+                int corner = DWMWCP_ROUND;
+                DwmSetWindowAttribute(hwnd, DWMWA_WINDOW_CORNER_PREFERENCE,
+                    ref corner, sizeof(int));
             }
             catch
             {

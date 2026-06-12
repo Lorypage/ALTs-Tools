@@ -7,10 +7,28 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <materialDesign:BundledTheme BaseTheme="Light"
-                                            PrimaryColor="Indigo"
-                                            SecondaryColor="LightBlue"/>
+                                            PrimaryColor="DeepPurple"
+                                            SecondaryColor="DeepPurple"/>
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign3.Defaults.xaml"/>
+                <ResourceDictionary Source="Themes/Expressive.xaml"/>
+                <ResourceDictionary Source="Themes/ScrollBarStyle.xaml"/>
             </ResourceDictionary.MergedDictionaries>
+
+            <!-- Embedded Roboto. The #Roboto suffix is the font's internal family
+                 name; the path points at the folder the .ttf files live in. -->
+            <FontFamily x:Key="AppFont">pack://application:,,,/Fonts/Roboto/#Roboto</FontFamily>
+
+            <!-- Override the key every MaterialDesign text style reads its font
+                 from, so Body/Button/Headline/etc. all switch to Roboto. -->
+            <FontFamily x:Key="MaterialDesignFont">pack://application:,,,/Fonts/Roboto/#Roboto</FontFamily>
+
+            <!-- Catch controls that inherit FontFamily directly rather than via a
+                 MaterialDesign style (plain TextBlocks, third-party controls). -->
+            <Style TargetType="{x:Type Window}">
+                <Setter Property="FontFamily" Value="{StaticResource AppFont}"/>
+                <Setter Property="TextOptions.TextFormattingMode" Value="Ideal"/>
+                <Setter Property="TextOptions.TextRenderingMode" Value="ClearType"/>
+            </Style>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

@@ -91,6 +91,25 @@ namespace RefreshToAccess2.Localization
             // ── Helper.PopException ──
             // {0}=message {1}=source {2}=stack {3}=inner {4}=target
             d["Helper.Exception"] = "发生异常：\n消息: {0}\n\n来源: {1}\n\n堆栈跟踪: {2}\n\n内部异常: {3}\n\n目标方法: {4}";
+
+            // ── Auto-update ──
+            d["Update.Title"] = "发现新版本";
+            // {0}=current {1}=latest
+            d["Update.VersionLine"] = "当前版本 {0}，最新版本 {1}。是否立即更新？";
+            d["Update.NoNotes"] = "（本次更新没有提供更新说明）";
+            d["Update.Now"] = "立即更新";
+            d["Update.Later"] = "稍后";
+            d["Update.Downloading"] = "正在下载更新…";
+            // {0}=percent
+            d["Update.DownloadingPct"] = "正在下载更新… {0}%";
+            d["Update.Restarting"] = "下载完成，正在重启以应用更新…";
+            // {0}=error
+            d["Update.Failed"] = "更新失败：\n{0}";
+            d["Update.CheckFailed"] = "无法检查更新。请检查网络连接后稍后再试。";
+            d["Update.RateLimited"] = "GitHub 暂时限制了更新检查（来自你网络的请求过于频繁）。请稍后再试。";
+            d["Update.NoRelease"] = "未找到可更新的已发布版本。";
+            // {0}=current
+            d["Update.UpToDate"] = "你已是最新版本（{0}）。";
         }
     }
 }

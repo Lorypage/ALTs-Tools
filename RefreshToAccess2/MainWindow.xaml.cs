@@ -197,7 +197,28 @@ namespace RefreshToAccess2
                 catch (Exception ex) { Helper.PopException(ex); }
             });
 
+            // Fire-and-forget update check so it never blocks the listener.
+            _ = CheckForUpdatesAsync();
+
             await StartListenerAsync();
+        }
+
+        /// <summary>
+        /// Silently queries GitHub for a newer release and, if one exists,
+        /// surfaces the in-app update prompt. Skipped when the user has turned
+        /// auto-checking off. Any failure is swallowed so a missed check never
+        /// interrupts normal use.
+        /// </summary>
+        private async Task CheckForUpdatesAsync()
+        {
+            try
+            {
+                if (!Services.UpdateService.AutoCheckEnabled)
+                    return;
+
+                await Services.UpdateService.ShowUpdateFlowAsync(manual: false);
+            }
+            catch { /* update checks must never crash the app */ }
         }
 
         private async Task StartListenerAsync()
@@ -246,6 +267,11 @@ namespace RefreshToAccess2
         {
             Helpers.TitleBarHelper.Apply(this);
 
+            // The DWM caption/border colour is set once here at startup; when the
+            // user later toggles dark mode or changes accent, re-apply it so the
+            // window edge follows the theme instead of staying its startup colour.
+            Theming.ThemeManager.Instance.ThemeChanged += OnThemeChanged;
+
             var hwnd = new System.Windows.Interop.WindowInteropHelper(this).Handle;
             var source = System.Windows.Interop.HwndSource.FromHwnd(hwnd);
 
@@ -255,6 +281,18 @@ namespace RefreshToAccess2
 
             // Intercept future attempts to show them
             source?.AddHook(WndProc);
+        }
+
+        /// <summary>
+        /// Re-applies the DWM caption/border colour after a theme change. Deferred
+        /// to Background priority so MaterialDesign's brushes have finished
+        /// swapping in the ResourceDictionary before we read the new background.
+        /// </summary>
+        private void OnThemeChanged(object? sender, EventArgs e)
+        {
+            Dispatcher.BeginInvoke(
+                System.Windows.Threading.DispatcherPriority.Background,
+                new Action(() => Helpers.TitleBarHelper.Apply(this)));
         }
 
         private static IntPtr WndProc(
@@ -270,6 +308,42 @@ namespace RefreshToAccess2
                     handled = true;
             }
             return IntPtr.Zero;
+        }
+
+        // ── Custom title bar caption buttons ───────────────────────
+
+        private void OnMinimizeClick(object sender, RoutedEventArgs e)
+            => WindowState = WindowState.Minimized;
+
+        private void OnMaximizeClick(object sender, RoutedEventArgs e)
+            => WindowState = WindowState == WindowState.Maximized
+                ? WindowState.Normal
+                : WindowState.Maximized;
+
+        private void OnCloseClick(object sender, RoutedEventArgs e)
+            => Close();
+
+        /// <summary>
+        /// Keeps the maximize/restore glyph in sync and compensates for the
+        /// fact that a WindowChrome window, when maximized, overhangs the work
+        /// area on all sides — padding the root pulls content back into view.
+        /// </summary>
+        private void OnWindowStateChanged(object? sender, EventArgs e)
+        {
+            bool max = WindowState == WindowState.Maximized;
+
+            MaximizeIcon.Kind = max
+                ? MaterialDesignThemes.Wpf.PackIconKind.WindowRestore
+                : MaterialDesignThemes.Wpf.PackIconKind.WindowMaximize;
+
+            // SystemParameters captures the chrome overhang (≈7px each side).
+            RootLayout.Margin = max
+                ? new Thickness(
+                    SystemParameters.WindowResizeBorderThickness.Left + 1,
+                    SystemParameters.WindowResizeBorderThickness.Top + 1,
+                    SystemParameters.WindowResizeBorderThickness.Right + 1,
+                    SystemParameters.WindowResizeBorderThickness.Bottom + 1)
+                : new Thickness(0);
         }
 
         private void OnPreviewKeyDown(object sender, KeyEventArgs e)

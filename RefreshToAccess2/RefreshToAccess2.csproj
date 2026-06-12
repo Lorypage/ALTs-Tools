@@ -9,10 +9,11 @@
     <UseWindowsForms>true</UseWindowsForms>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <AssemblyName>TokenTools</AssemblyName>
-    <NoWin32Manifest>true</NoWin32Manifest>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>coolpig.ico</ApplicationIcon>
-    <AssemblyVersion>1.0</AssemblyVersion>
-    <FileVersion>1.0</FileVersion>
+    <AssemblyVersion>1.0.2</AssemblyVersion>
+    <FileVersion>1.0.2</FileVersion>
+    <Version>1.0.2</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -112,7 +113,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="coolpig.ico" />
+    <Resource Include="coolpig.ico" />
+  </ItemGroup>
+
+  <!-- Embed Roboto so the UI font is available regardless of what's installed. -->
+  <ItemGroup>
+    <Resource Include="Fonts\Roboto\*.ttf" />
   </ItemGroup>
 
   <ItemGroup>

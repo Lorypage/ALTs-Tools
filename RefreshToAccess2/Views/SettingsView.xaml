@@ -67,7 +67,8 @@
                      UniformCornerRadius="14"
                      Padding="20,18"
                      HorizontalAlignment="Left"
-                     MinWidth="380">
+                     MinWidth="380"
+                     Margin="0,0,0,16">
                 <StackPanel>
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
                         <md:PackIcon Kind="Palette"
@@ -207,6 +208,55 @@
                             </Style>
                         </ListBox.ItemContainerStyle>
                     </ListBox>
+                </StackPanel>
+            </md:Card>
+
+            <!-- Updates card -->
+            <md:Card md:ElevationAssist.Elevation="Dp1"
+                     UniformCornerRadius="14"
+                     Padding="20,18"
+                     HorizontalAlignment="Left"
+                     MinWidth="380"
+                     Margin="0,16,0,0">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                        <md:PackIcon Kind="Update"
+                                     Width="20" Height="20"
+                                     VerticalAlignment="Center"
+                                     Opacity="0.6"
+                                     Margin="0,0,10,0"/>
+                        <TextBlock Text="{loc:Tr Settings.Updates}"
+                                   FontSize="15"
+                                   FontWeight="SemiBold"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <TextBlock Text="{loc:Tr Settings.UpdatesDesc}"
+                               FontSize="12"
+                               Opacity="0.55"
+                               Margin="0,0,0,16"/>
+
+                    <!-- Auto-check toggle -->
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,18">
+                        <md:PackIcon Kind="Autorenew"
+                                     Width="18" Height="18"
+                                     VerticalAlignment="Center"
+                                     Opacity="0.6"
+                                     Margin="0,0,10,0"/>
+                        <TextBlock Text="{loc:Tr Settings.AutoCheckUpdates}"
+                                   FontSize="13"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,14,0"/>
+                        <ToggleButton Style="{StaticResource MaterialDesignSwitchToggleButton}"
+                                      IsChecked="{Binding AutoCheckUpdates}"
+                                      VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <!-- Manual check button -->
+                    <Button Content="{loc:Tr Settings.CheckNow}"
+                            Command="{Binding CheckUpdatesCommand}"
+                            HorizontalAlignment="Left"
+                            Style="{StaticResource MaterialDesignOutlinedButton}"/>
                 </StackPanel>
             </md:Card>
 

@@ -8,6 +8,9 @@ namespace RefreshToAccess2.Localization
         {
             // Window
             d["Window.Title"] = "ALTs Tools";
+            d["Window.Minimize"] = "Minimize";
+            d["Window.Maximize"] = "Maximize";
+            d["Window.Close"] = "Close";
 
             // Navigation
             d["Nav.Converter"] = "Converter";
@@ -50,6 +53,10 @@ namespace RefreshToAccess2.Localization
             d["Settings.AccentColor"] = "Theme color";
             d["Settings.Dynamic"] = "Dynamic (from wallpaper)";
             d["Settings.DynamicTip"] = "Generate the theme color from your desktop wallpaper";
+            d["Settings.Updates"] = "Updates";
+            d["Settings.UpdatesDesc"] = "Keep ALTs Tools up to date with the latest release.";
+            d["Settings.AutoCheckUpdates"] = "Check for updates on startup";
+            d["Settings.CheckNow"] = "Check for updates now";
 
             // Token Injector view
             d["Injector.Title"] = "Token Injector";
