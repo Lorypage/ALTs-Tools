@@ -360,6 +360,131 @@ namespace RefreshToAccess2.ViewModels
             return result[2];
         }
 
+        // ── Hypixel ban check ──────────────────────────────────────
+
+        /// <summary>
+        /// Refreshes the block's access token (from its refresh token), writes the
+        /// fresh IGN / UUID / token back into the block, and returns the token.
+        /// Does NOT persist — callers decide when to <see cref="Save"/>.
+        /// </summary>
+        private async Task<string> RefreshTokenAsync(
+            ProfileDataBlock block, IProgress<string>? progress = null)
+        {
+            var data = block.profileData
+                ?? throw new InvalidOperationException(Loc.T("AltMgr.NoRefreshToken"));
+
+            if (string.IsNullOrWhiteSpace(data.RefToken) || data.RefToken == "N/A")
+                throw new InvalidOperationException(Loc.T("AltMgr.NoRefreshToken"));
+
+            var client = TokenConverterViewModel.ResolveClientByName(data.ClientId);
+            string[] result = await MSLoginService.RequestTokenAsync(
+                data.RefToken, client, progress);
+
+            data.IGN      = result[0];
+            data.UUID     = result[1];
+            data.AccToken = result[2];
+            return result[2];
+        }
+
+        /// <summary>
+        /// Checks a single account's Hypixel ban status: refreshes its token, runs the
+        /// login-protocol probe, writes the result into the block, persists, and
+        /// refreshes the card. Never throws — failures are stored as an "error" status.
+        /// </summary>
+        public async Task CheckBanAsync(
+            ProfileDataBlock block, IProgress<string>? progress = null)
+        {
+            _cardCache.TryGetValue(block, out var card);
+            if (card != null) card.IsCheckingBan = true;
+            try
+            {
+                HypixelBanService.BanResult result;
+                try
+                {
+                    string token = await RefreshTokenAsync(block, progress);
+                    result = await HypixelBanService.CheckAsync(
+                        token, block.profileData!.UUID ?? "", block.profileData!.IGN ?? "");
+                }
+                catch (Exception ex)
+                {
+                    result = new HypixelBanService.BanResult(
+                        HypixelBanService.StatusError, null, ex.Message);
+                }
+
+                ApplyResult(block, result);
+                Save();
+                card?.RaiseBanChanged();
+            }
+            finally
+            {
+                if (card != null) card.IsCheckingBan = false;
+            }
+        }
+
+        /// <summary>
+        /// Checks every stored account, at most <c>maxConcurrency</c> at a time to
+        /// respect Hypixel / Mojang rate limits. Persists once at the end.
+        /// </summary>
+        public async Task CheckAllBansAsync(
+            IProgress<(int done, int total)>? progress = null, int maxConcurrency = 3)
+        {
+            var blocks = _master.ToList();
+            int total = blocks.Count;
+            if (total == 0) return;
+
+            int done = 0;
+            using var gate = new System.Threading.SemaphoreSlim(maxConcurrency);
+
+            var tasks = blocks.Select(async block =>
+            {
+                await gate.WaitAsync();
+                _cardCache.TryGetValue(block, out var card);
+                if (card != null)
+                    await App.Current.Dispatcher.InvokeAsync(() => card.IsCheckingBan = true);
+                try
+                {
+                    HypixelBanService.BanResult result;
+                    try
+                    {
+                        string token = await RefreshTokenAsync(block);
+                        result = await HypixelBanService.CheckAsync(
+                            token, block.profileData!.UUID ?? "", block.profileData!.IGN ?? "");
+                    }
+                    catch (Exception ex)
+                    {
+                        result = new HypixelBanService.BanResult(
+                            HypixelBanService.StatusError, null, ex.Message);
+                    }
+
+                    ApplyResult(block, result);
+                    if (card != null)
+                        await App.Current.Dispatcher.InvokeAsync(() =>
+                        {
+                            card.IsCheckingBan = false;
+                            card.RaiseBanChanged();
+                        });
+                }
+                finally
+                {
+                    if (card != null)
+                        await App.Current.Dispatcher.InvokeAsync(() => card.IsCheckingBan = false);
+                    progress?.Report((System.Threading.Interlocked.Increment(ref done), total));
+                    gate.Release();
+                }
+            });
+
+            await Task.WhenAll(tasks);
+            Save();
+        }
+
+        private static void ApplyResult(ProfileDataBlock block, HypixelBanService.BanResult r)
+        {
+            block.banStatus     = r.BanStatus;
+            block.banDaysLeft   = r.DaysLeft;
+            block.banRawMessage = r.RawMessage;
+            block.banCheckedUtc = DateTime.UtcNow.ToString("o");
+        }
+
         /// <summary>
         /// Force an immediate save (call when navigating away, etc.).
         /// Stops any pending debounced head-save timer.

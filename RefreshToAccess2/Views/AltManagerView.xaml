@@ -13,6 +13,30 @@
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolVis"/>
         <helpers:InvertBoolConverter  x:Key="InvertBool"/>
+        <helpers:BanKindToBrushConverter x:Key="BanBrush"/>
+        <helpers:InvertBoolToVisConverter x:Key="InvertBoolVis"/>
+        <helpers:NullToVisConverter x:Key="NullToVis"/>
+        <helpers:BoolToFlagTextConverter x:Key="FlagText"/>
+
+        <!-- ═══ Hypixel stat tile styles ═══ -->
+        <Style x:Key="StatTile" TargetType="Border">
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="Margin" Value="3"/>
+            <Setter Property="Background"
+                    Value="{DynamicResource MaterialDesign.Brush.Background}"/>
+        </Style>
+        <Style x:Key="StatLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="10.5"/>
+            <Setter Property="Opacity" Value="0.5"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+        </Style>
+        <Style x:Key="StatValue" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Margin" Value="0,2,0,0"/>
+            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+        </Style>
 
         <!-- ═══════════════════════════════════════════════════
              AVATAR TEMPLATES
@@ -55,7 +79,7 @@
         <DataTemplate x:Key="CardTpl">
             <Grid Cursor="Hand"
                   Margin="6"
-                  Width="{Binding DataContext.CardWidth,
+                  helpers:AnimatedWidth.TargetWidth="{Binding DataContext.CardWidth,
                           RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                   MouseLeftButtonUp="OnCardClick"
                   helpers:EntranceAnimation.IsEnabled="True">
@@ -74,6 +98,7 @@
                                     <RowDefinition Height="10"/>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="5"/>
+                                    <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
 
@@ -98,6 +123,33 @@
                                     <TextBlock Text="{Binding UUIDShort}" FontSize="11"
                                                FontFamily="Consolas" Margin="5,0,0,0"
                                                VerticalAlignment="Center"/>
+                                </StackPanel>
+
+                                <!-- Ban status badge -->
+                                <Border Grid.Row="5" Margin="0,9,0,0" CornerRadius="9"
+                                        Padding="8,3" HorizontalAlignment="Left"
+                                        Background="{Binding BanBadgeKind, Converter={StaticResource BanBrush}}"
+                                        Visibility="{Binding ShowBanBadge, Converter={StaticResource BoolVis}}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <md:PackIcon Kind="ShieldAccountOutline" Width="14" Height="14"
+                                                     VerticalAlignment="Center"
+                                                     Foreground="{Binding BanBadgeKind, Converter={StaticResource BanBrush}, ConverterParameter=fg}"/>
+                                        <TextBlock Text="{Binding BanBadgeText}" FontSize="11"
+                                                   FontWeight="Medium" Margin="5,0,0,0"
+                                                   VerticalAlignment="Center"
+                                                   Foreground="{Binding BanBadgeKind, Converter={StaticResource BanBrush}, ConverterParameter=fg}"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Checking spinner -->
+                                <StackPanel Grid.Row="5" Margin="0,9,0,0" Orientation="Horizontal"
+                                            HorizontalAlignment="Left"
+                                            Visibility="{Binding IsCheckingBan, Converter={StaticResource BoolVis}}">
+                                    <ProgressBar Style="{StaticResource MaterialDesignCircularProgressBar}"
+                                                 Value="0" IsIndeterminate="True"
+                                                 Width="16" Height="16"/>
+                                    <TextBlock Text="{loc:Tr AltMgr.Checking}" FontSize="11"
+                                               Opacity="0.6" Margin="7,0,0,0" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Grid>
 
@@ -175,6 +227,7 @@
                                     <ColumnDefinition Width="155"/>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
 
                                 <ContentPresenter Content="{Binding}"
@@ -190,7 +243,29 @@
                                            FontSize="11.5" FontFamily="Consolas" Opacity="0.38"
                                            VerticalAlignment="Center"
                                            TextTrimming="CharacterEllipsis"/>
-                                <md:PackIcon Grid.Column="5" Kind="CheckCircle" Width="20" Height="20"
+
+                                <!-- Ban badge -->
+                                <Border Grid.Column="5" CornerRadius="9" Padding="8,3" Margin="0,0,10,0"
+                                        VerticalAlignment="Center"
+                                        Background="{Binding BanBadgeKind, Converter={StaticResource BanBrush}}"
+                                        Visibility="{Binding ShowBanBadge, Converter={StaticResource BoolVis}}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <md:PackIcon Kind="ShieldAccountOutline" Width="13" Height="13"
+                                                     VerticalAlignment="Center"
+                                                     Foreground="{Binding BanBadgeKind, Converter={StaticResource BanBrush}, ConverterParameter=fg}"/>
+                                        <TextBlock Text="{Binding BanBadgeText}" FontSize="10.5"
+                                                   FontWeight="Medium" Margin="4,0,0,0"
+                                                   VerticalAlignment="Center"
+                                                   Foreground="{Binding BanBadgeKind, Converter={StaticResource BanBrush}, ConverterParameter=fg}"/>
+                                    </StackPanel>
+                                </Border>
+                                <ProgressBar Grid.Column="5" Margin="0,0,10,0"
+                                             Style="{StaticResource MaterialDesignCircularProgressBar}"
+                                             Value="0" IsIndeterminate="True" Width="16" Height="16"
+                                             VerticalAlignment="Center"
+                                             Visibility="{Binding IsCheckingBan, Converter={StaticResource BoolVis}}"/>
+
+                                <md:PackIcon Grid.Column="6" Kind="CheckCircle" Width="20" Height="20"
                                              Foreground="{DynamicResource MaterialDesign.Brush.Primary}"
                                              VerticalAlignment="Center"
                                              Visibility="{Binding IsSelected, Converter={StaticResource BoolVis}}"/>
@@ -568,6 +643,19 @@
                                                VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
+
+                            <!-- Check all Hypixel ban status -->
+                            <Button Style="{StaticResource MaterialDesignOutlinedButton}"
+                                    Height="40" HorizontalAlignment="Stretch" Margin="0,12,0,0"
+                                    md:ButtonAssist.CornerRadius="20"
+                                    Click="OnCheckAllBans">
+                                <StackPanel Orientation="Horizontal">
+                                    <md:PackIcon Kind="ShieldSearch" Width="19" Height="19"
+                                                 VerticalAlignment="Center"/>
+                                    <TextBlock Text="{loc:Tr AltMgr.CheckAllBans}" Margin="8,0,0,0"
+                                               VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
                         </StackPanel>
                     </ScrollViewer>
                 </Grid>
@@ -637,10 +725,34 @@
                             <Run Text="{loc:Tr AltMgr.Client}"/>
                             <Run Text="{Binding DetailItem.ClientId, Mode=OneWay}"/>
                         </TextBlock>
+
+                        <!-- Ban status badge -->
+                        <Border CornerRadius="10" Padding="10,4" Margin="0,10,0,0"
+                                HorizontalAlignment="Center"
+                                Background="{Binding DetailItem.BanBadgeKind, Converter={StaticResource BanBrush}}"
+                                Visibility="{Binding DetailItem.ShowBanBadge, Converter={StaticResource BoolVis}}">
+                            <StackPanel Orientation="Horizontal">
+                                <md:PackIcon Kind="ShieldAccountOutline" Width="15" Height="15"
+                                             VerticalAlignment="Center"
+                                             Foreground="{Binding DetailItem.BanBadgeKind, Converter={StaticResource BanBrush}, ConverterParameter=fg}"/>
+                                <TextBlock Text="{Binding DetailItem.BanBadgeText}" FontSize="12"
+                                           FontWeight="Medium" Margin="6,0,0,0" VerticalAlignment="Center"
+                                           Foreground="{Binding DetailItem.BanBadgeKind, Converter={StaticResource BanBrush}, ConverterParameter=fg}"/>
+                            </StackPanel>
+                        </Border>
+                        <TextBlock Text="{Binding DetailItem.BanLastCheckedText}"
+                                   HorizontalAlignment="Center" Opacity="0.38" FontSize="10.5"
+                                   Margin="0,3,0,0"/>
                     </StackPanel>
 
-                    <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto"
-                                  HorizontalScrollBarVisibility="Disabled">
+                    <TabControl x:Name="DetailTabs" Grid.Row="2"
+                                Style="{StaticResource MaterialDesignTabControl}"
+                                Background="Transparent" BorderThickness="0"
+                                SelectionChanged="OnDetailTabChanged">
+                      <TabItem Header="{loc:Tr AltMgr.TabAccount}">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                      HorizontalScrollBarVisibility="Disabled" Padding="0,10,0,0"
+                                      helpers:SmoothScroll.IsEnabled="True">
                         <StackPanel>
                             <Border CornerRadius="12" Padding="14,10" Margin="0,0,0,6"
                                     Background="{DynamicResource MaterialDesign.Brush.Background}">
@@ -699,12 +811,213 @@
                                     </Button>
                                 </Grid>
                             </Border>
-                        </StackPanel>
-                    </ScrollViewer>
 
-                    <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Center">
+                            <!-- Raw ban message (shown for banned accounts) -->
+                            <Border CornerRadius="12" Padding="14,10" Margin="0,0,0,6"
+                                    Background="{DynamicResource MaterialDesign.Brush.Background}"
+                                    Visibility="{Binding DetailItem.HasBanRawMessage, Converter={StaticResource BoolVis}}">
+                                <StackPanel>
+                                    <TextBlock Text="{loc:Tr AltMgr.BanMessage}" FontSize="11"
+                                               Opacity="0.50" FontWeight="Medium"/>
+                                    <TextBlock Text="{Binding DetailItem.BanRawMessage}" FontSize="12"
+                                               Margin="0,3,0,0" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                        </ScrollViewer>
+                      </TabItem>
+
+                      <!-- ── Hypixel stats tab ── -->
+                      <TabItem Header="{loc:Tr AltMgr.TabHypixel}">
+                        <Grid Margin="0,10,0,0">
+                            <!-- Empty state / load button -->
+                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"
+                                        Visibility="{Binding DetailItem.HasStats, Converter={StaticResource InvertBoolVis}}">
+                                <ProgressBar Style="{StaticResource MaterialDesignCircularProgressBar}"
+                                             Value="0" IsIndeterminate="True" Width="34" Height="34"
+                                             HorizontalAlignment="Center"
+                                             Visibility="{Binding DetailItem.IsLoadingStats, Converter={StaticResource BoolVis}}"/>
+                                <TextBlock Text="{loc:Tr AltMgr.StatsLoading}" Opacity="0.6"
+                                           HorizontalAlignment="Center" Margin="0,12,0,0" FontSize="12.5"
+                                           Visibility="{Binding DetailItem.IsLoadingStats, Converter={StaticResource BoolVis}}"/>
+
+                                <StackPanel Visibility="{Binding DetailItem.IsLoadingStats, Converter={StaticResource InvertBoolVis}}"
+                                            HorizontalAlignment="Center">
+                                    <TextBlock Text="{Binding DetailItem.StatsError}" Opacity="0.7"
+                                               HorizontalAlignment="Center" Margin="0,0,0,12" FontSize="12.5"
+                                               Foreground="{DynamicResource MaterialDesignValidationErrorBrush}"
+                                               Visibility="{Binding DetailItem.HasStatsError, Converter={StaticResource BoolVis}}"/>
+                                    <Button Style="{StaticResource MaterialDesignRaisedButton}"
+                                            md:ButtonAssist.CornerRadius="20" Height="40" Padding="18,0"
+                                            Click="OnLoadStats">
+                                        <StackPanel Orientation="Horizontal">
+                                            <md:PackIcon Kind="ChartBox" Width="19" Height="19" VerticalAlignment="Center"/>
+                                            <TextBlock Text="{loc:Tr AltMgr.StatsLoad}" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+                            </StackPanel>
+
+                            <!-- Loaded stats -->
+                            <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                          HorizontalScrollBarVisibility="Disabled"
+                                          helpers:SmoothScroll.IsEnabled="True"
+                                          Visibility="{Binding DetailItem.HasStats, Converter={StaticResource BoolVis}}">
+                                <StackPanel DataContext="{Binding DetailItem.Stats}">
+                                    <!-- PROFILE -->
+                                    <TextBlock Text="{loc:Tr AltMgr.StatsProfile}" FontSize="11" FontWeight="Bold"
+                                               Opacity="0.5" Margin="2,0,0,6"/>
+                                    <UniformGrid Columns="2" Margin="0,0,0,12">
+                                        <Border Style="{StaticResource StatTile}">
+                                            <StackPanel>
+                                                <TextBlock Text="{loc:Tr AltMgr.StatsRank}" Style="{StaticResource StatLabel}"/>
+                                                <TextBlock Text="{Binding Rank, TargetNullValue=—}" Style="{StaticResource StatValue}"/>
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Style="{StaticResource StatTile}">
+                                            <StackPanel>
+                                                <TextBlock Text="{loc:Tr AltMgr.StatsNetworkLevel}" Style="{StaticResource StatLabel}"/>
+                                                <TextBlock Text="{Binding NetworkLevel, TargetNullValue=—}" Style="{StaticResource StatValue}"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </UniformGrid>
+
+                                    <!-- BEDWARS -->
+                                    <TextBlock Text="{loc:Tr AltMgr.StatsBedwars}" FontSize="11" FontWeight="Bold"
+                                               Opacity="0.5" Margin="2,0,0,6"/>
+                                    <UniformGrid Columns="2" Margin="0,0,0,12">
+                                        <Border Style="{StaticResource StatTile}">
+                                            <StackPanel>
+                                                <TextBlock Text="{loc:Tr AltMgr.StatsStar}" Style="{StaticResource StatLabel}"/>
+                                                <TextBlock Text="{Binding BedwarsLevel, TargetNullValue=—}" Style="{StaticResource StatValue}"/>
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Style="{StaticResource StatTile}">
+                                            <StackPanel>
+                                                <TextBlock Text="{loc:Tr AltMgr.StatsWinstreak}" Style="{StaticResource StatLabel}"/>
+                                                <TextBlock Text="{Binding Winstreak, TargetNullValue=—}" Style="{StaticResource StatValue}"/>
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Style="{StaticResource StatTile}">
+                                            <StackPanel>
+                                                <TextBlock Text="{loc:Tr AltMgr.StatsFkdr}" Style="{StaticResource StatLabel}"/>
+                                                <TextBlock Text="{Binding CoreFkdr, TargetNullValue=—}" Style="{StaticResource StatValue}"/>
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Style="{StaticResource StatTile}">
+                                            <StackPanel>
+                                                <TextBlock Text="{loc:Tr AltMgr.StatsWlr}" Style="{StaticResource StatLabel}"/>
+                                                <TextBlock Text="{Binding CoreWlr, TargetNullValue=—}" Style="{StaticResource StatValue}"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </UniformGrid>
+
+                                    <!-- SKYWARS -->
+                                    <TextBlock Text="{loc:Tr AltMgr.StatsSkywars}" FontSize="11" FontWeight="Bold"
+                                               Opacity="0.5" Margin="2,0,0,6"/>
+                                    <UniformGrid Columns="2" Margin="0,0,0,12">
+                                        <Border Style="{StaticResource StatTile}">
+                                            <StackPanel>
+                                                <TextBlock Text="{loc:Tr AltMgr.StatsLevel}" Style="{StaticResource StatLabel}"/>
+                                                <TextBlock Text="{Binding SkywarsLevel, TargetNullValue=—}" Style="{StaticResource StatValue}"/>
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Style="{StaticResource StatTile}">
+                                            <StackPanel>
+                                                <TextBlock Text="{loc:Tr AltMgr.StatsKdr}" Style="{StaticResource StatLabel}"/>
+                                                <TextBlock Text="{Binding CoreKdr, TargetNullValue=—}" Style="{StaticResource StatValue}"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </UniformGrid>
+
+                                    <!-- SKYBLOCK (only when present) -->
+                                    <StackPanel Visibility="{Binding SkyblockLevel, Converter={StaticResource NullToVis}}">
+                                        <TextBlock Text="{loc:Tr AltMgr.StatsSkyblock}" FontSize="11" FontWeight="Bold"
+                                                   Opacity="0.5" Margin="2,0,0,6"/>
+                                        <UniformGrid Columns="2" Margin="0,0,0,12">
+                                            <Border Style="{StaticResource StatTile}">
+                                                <StackPanel>
+                                                    <TextBlock Text="{loc:Tr AltMgr.StatsLevel}" Style="{StaticResource StatLabel}"/>
+                                                    <TextBlock Text="{Binding SkyblockLevel, TargetNullValue=—}" Style="{StaticResource StatValue}"/>
+                                                </StackPanel>
+                                            </Border>
+                                            <Border Style="{StaticResource StatTile}">
+                                                <StackPanel>
+                                                    <TextBlock Text="{loc:Tr AltMgr.StatsNetworth}" Style="{StaticResource StatLabel}"/>
+                                                    <TextBlock Text="{Binding SkyblockNetworth, TargetNullValue=—}" Style="{StaticResource StatValue}"/>
+                                                </StackPanel>
+                                            </Border>
+                                            <Border Style="{StaticResource StatTile}">
+                                                <StackPanel>
+                                                    <TextBlock Text="{loc:Tr AltMgr.StatsPurse}" Style="{StaticResource StatLabel}"/>
+                                                    <TextBlock Text="{Binding SkyblockPurse, TargetNullValue=—}" Style="{StaticResource StatValue}"/>
+                                                </StackPanel>
+                                            </Border>
+                                            <Border Style="{StaticResource StatTile}">
+                                                <StackPanel>
+                                                    <TextBlock Text="{loc:Tr AltMgr.StatsBank}" Style="{StaticResource StatLabel}"/>
+                                                    <TextBlock Text="{Binding SkyblockBank, TargetNullValue=—}" Style="{StaticResource StatValue}"/>
+                                                </StackPanel>
+                                            </Border>
+                                        </UniformGrid>
+                                    </StackPanel>
+
+                                    <!-- THE PIT (only when present) -->
+                                    <StackPanel Visibility="{Binding PitLevel, Converter={StaticResource NullToVis}}">
+                                        <TextBlock Text="{loc:Tr AltMgr.StatsPit}" FontSize="11" FontWeight="Bold"
+                                                   Opacity="0.5" Margin="2,0,0,6"/>
+                                        <UniformGrid Columns="2" Margin="0,0,0,12">
+                                            <Border Style="{StaticResource StatTile}">
+                                                <StackPanel>
+                                                    <TextBlock Text="{loc:Tr AltMgr.StatsLevel}" Style="{StaticResource StatLabel}"/>
+                                                    <TextBlock Text="{Binding PitLevel, TargetNullValue=—}" Style="{StaticResource StatValue}"/>
+                                                </StackPanel>
+                                            </Border>
+                                            <Border Style="{StaticResource StatTile}">
+                                                <StackPanel>
+                                                    <TextBlock Text="{loc:Tr AltMgr.StatsKdr}" Style="{StaticResource StatLabel}"/>
+                                                    <TextBlock Text="{Binding PitKd, TargetNullValue=—}" Style="{StaticResource StatValue}"/>
+                                                </StackPanel>
+                                            </Border>
+                                        </UniformGrid>
+                                    </StackPanel>
+
+                                    <!-- BLACKLISTS -->
+                                    <TextBlock Text="{loc:Tr AltMgr.StatsBlacklist}" FontSize="11" FontWeight="Bold"
+                                               Opacity="0.5" Margin="2,0,0,6"/>
+                                    <UniformGrid Columns="2" Margin="0,0,0,4">
+                                        <Border Style="{StaticResource StatTile}">
+                                            <StackPanel>
+                                                <TextBlock Text="{loc:Tr AltMgr.StatsSeraph}" Style="{StaticResource StatLabel}"/>
+                                                <TextBlock Style="{StaticResource StatValue}"
+                                                           Text="{Binding SeraphBlacklisted, Converter={StaticResource FlagText}}"/>
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Style="{StaticResource StatTile}">
+                                            <StackPanel>
+                                                <TextBlock Text="{loc:Tr AltMgr.StatsUrchin}" Style="{StaticResource StatLabel}"/>
+                                                <TextBlock Text="{Binding UrchinStatus, TargetNullValue=—}" Style="{StaticResource StatValue}"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </UniformGrid>
+
+                                    <Button Style="{StaticResource MaterialDesignFlatButton}"
+                                            HorizontalAlignment="Center" Margin="0,8,0,0"
+                                            Click="OnRefreshStats">
+                                        <StackPanel Orientation="Horizontal">
+                                            <md:PackIcon Kind="Refresh" Width="16" Height="16" VerticalAlignment="Center"/>
+                                            <TextBlock Text="{loc:Tr AltMgr.StatsRefresh}" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+                            </ScrollViewer>
+                        </Grid>
+                      </TabItem>
+                    </TabControl>
+
+                    <WrapPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Center">
                         <Button Style="{StaticResource MaterialDesignRaisedButton}"
-                                Height="40" Padding="18,0" md:ButtonAssist.CornerRadius="20"
+                                Height="40" Padding="16,0" Margin="4" md:ButtonAssist.CornerRadius="20"
                                 helpers:InteractionAnimation.Pop="True"
                                 Click="OnDetailLogin" ToolTip="{loc:Tr AltMgr.LoginTip}">
                             <StackPanel Orientation="Horizontal">
@@ -714,7 +1027,7 @@
                             </StackPanel>
                         </Button>
                         <Button Style="{StaticResource MaterialDesignOutlinedButton}"
-                                Height="40" Padding="16,0" Margin="10,0,0,0"
+                                Height="40" Padding="14,0" Margin="4"
                                 md:ButtonAssist.CornerRadius="20"
                                 helpers:InteractionAnimation.Pop="True"
                                 Click="OnDetailRefresh" ToolTip="{loc:Tr AltMgr.RefreshTokenTip}">
@@ -725,7 +1038,7 @@
                             </StackPanel>
                         </Button>
                         <Button Style="{StaticResource MaterialDesignOutlinedButton}"
-                                Height="40" Padding="16,0" Margin="10,0,0,0"
+                                Height="40" Padding="14,0" Margin="4"
                                 helpers:InteractionAnimation.Pop="True"
                                 md:ButtonAssist.CornerRadius="20" Click="OnCopyAll" ToolTip="{loc:Tr AltMgr.CopyAllTip}">
                             <StackPanel Orientation="Horizontal">
@@ -733,7 +1046,16 @@
                                 <TextBlock Text="{loc:Tr AltMgr.CopyAll}" Margin="7,0,0,0" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
-                    </StackPanel>
+                        <Button Style="{StaticResource MaterialDesignOutlinedButton}"
+                                Height="40" Padding="14,0" Margin="4"
+                                helpers:InteractionAnimation.Pop="True"
+                                md:ButtonAssist.CornerRadius="20" Click="OnCheckBan" ToolTip="{loc:Tr AltMgr.CheckBanTip}">
+                            <StackPanel Orientation="Horizontal">
+                                <md:PackIcon Kind="ShieldSearch" Width="18" Height="18" VerticalAlignment="Center"/>
+                                <TextBlock Text="{loc:Tr AltMgr.CheckBan}" Margin="7,0,0,0" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                    </WrapPanel>
                 </Grid>
             </Border>
         </Grid>

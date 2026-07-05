@@ -33,21 +33,6 @@
                        Style="{StaticResource MaterialDesignBody1TextBlock}"
                        Text="{loc:Tr Injector.Desc}"/>
 
-            <!-- Optional access-token entry. When filled in, it is validated
-                 and injected directly; when empty the normal flow runs.       -->
-            <TextBox x:Name="AccessTokenBox"
-                     Width="600"
-                     MinHeight="96"
-                     HorizontalAlignment="Center"
-                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                     md:HintAssist.Hint="{loc:Tr Injector.TokenHint}"
-                     FontFamily="Consolas"
-                     TextWrapping="Wrap"
-                     AcceptsReturn="True"
-                     VerticalScrollBarVisibility="Auto"
-                     VerticalContentAlignment="Top"
-                     Margin="0,0,0,20"/>
-
             <Button Content="{loc:Tr Injector.OpenSelector}"
                     Width="240" Height="46"
                     HorizontalAlignment="Center"

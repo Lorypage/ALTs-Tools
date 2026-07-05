@@ -32,48 +32,9 @@ namespace RefreshToAccess2.Views
             // Optional pre-supplied access token. When the box is filled in we
             // validate it first and only continue if it checks out; when empty
             // the normal stored-token flow runs unchanged.
-            string? prefilledToken = AccessTokenBox.Text?.Trim();
-            if (string.IsNullOrEmpty(prefilledToken))
-            {
-                prefilledToken = null;
-            }
-            else if (!ValidateToken(prefilledToken))
-            {
-                return;
-            }
-
-            var selector = new MinecraftProcSelectorView(prefilledToken);
+            var selector = new MinecraftProcSelectorView(null);
             await MaterialDesignThemes.Wpf.DialogHost.Show(
                 selector, Helpers.AppMessageBox.RootDialogIdentifier);
-        }
-
-        // ── Access-token validation ────────────────────────────────────
-
-        /// <summary>
-        /// Validates that <paramref name="token"/> decodes as a JWT and has not
-        /// expired. Shows a status message and returns <c>false</c> when it is
-        /// expired or cannot be decoded.
-        /// </summary>
-        private bool ValidateToken(string token)
-        {
-            try
-            {
-                ulong exp = Convert.ToUInt64(
-                    Crypto.JWTDecode.GetDecodedJWTExpDate(token));
-
-                if (exp < Helper.GetUnixTimeNative())
-                {
-                    ShowStatus(Localization.Loc.T("InjTok.Msg.Expired"));
-                    return false;
-                }
-
-                return true;
-            }
-            catch
-            {
-                ShowStatus(Localization.Loc.T("Injector.TokenInvalid"));
-                return false;
-            }
         }
 
         // ── Status label fade-in ───────────────────────────────────────

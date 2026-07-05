@@ -59,6 +59,65 @@ namespace RefreshToAccess2.Localization
             d["AltMgr.RefreshTokenTip"] = "刷新令牌";
             d["AltMgr.CopyAllTip"] = "复制全部";
 
+            // ── Hypixel 封禁检测 ──
+            d["AltMgr.CheckBan"] = "检测封禁";
+            d["AltMgr.CheckBanTip"] = "检测该账号在 Hypixel 的封禁状态";
+            d["AltMgr.CheckAllBans"] = "检测全部封禁状态";
+            d["AltMgr.Checking"] = "正在检测封禁状态…";
+            // {0}=done {1}=total
+            d["AltMgr.CheckingProgress"] = "正在检测封禁… {0}/{1}";
+            // {0}=count
+            d["AltMgr.CheckedAllBans"] = "✓ 已检测 {0} 个账号";
+            d["AltMgr.BanClean"] = "未被封禁";
+            // {0}=days
+            d["AltMgr.BanTemp"] = "已封禁 · 剩 {0} 天";
+            d["AltMgr.BanPerm"] = "永久封禁";
+            d["AltMgr.BanUnknown"] = "未知";
+            d["AltMgr.BanError"] = "检测失败";
+            // {0}=date
+            d["AltMgr.BanLastChecked"] = "上次检测：{0}";
+            d["AltMgr.BanMessage"] = "封禁信息";
+            // {0}=error
+            d["AltMgr.BanCheckFailed"] = "封禁检测失败：\n{0}";
+
+            // ── Hypixel 数据标签页 ──
+            d["AltMgr.TabAccount"] = "账号";
+            d["AltMgr.TabHypixel"] = "Hypixel";
+            d["AltMgr.StatsLoad"] = "加载 Hypixel 数据";
+            d["AltMgr.StatsLoading"] = "正在加载数据…";
+            d["AltMgr.StatsRefresh"] = "刷新";
+            d["AltMgr.StatsNotFound"] = "在 Hypixel 未找到该玩家";
+            d["AltMgr.StatsRateLimited"] = "请求过于频繁——请稍后再试";
+            d["AltMgr.StatsFetchError"] = "无法获取数据";
+            d["AltMgr.StatsEmpty"] = "尚未加载数据";
+            // sections
+            d["AltMgr.StatsProfile"] = "资料";
+            d["AltMgr.StatsBedwars"] = "起床战争";
+            d["AltMgr.StatsSkywars"] = "空岛战争";
+            d["AltMgr.StatsSkyblock"] = "空岛生存";
+            d["AltMgr.StatsPit"] = "深渊竞技场";
+            d["AltMgr.StatsBlacklist"] = "黑名单";
+            // fields
+            d["AltMgr.StatsRank"] = "段位";
+            d["AltMgr.StatsNetworkLevel"] = "网络等级";
+            d["AltMgr.StatsSession"] = "状态";
+            d["AltMgr.StatsOnline"] = "在线";
+            d["AltMgr.StatsOffline"] = "离线";
+            d["AltMgr.StatsStar"] = "星数";
+            d["AltMgr.StatsLevel"] = "等级";
+            d["AltMgr.StatsWinstreak"] = "连胜";
+            d["AltMgr.StatsKdr"] = "KDR";
+            d["AltMgr.StatsFkdr"] = "FKDR";
+            d["AltMgr.StatsWlr"] = "WLR";
+            d["AltMgr.StatsNetworth"] = "净资产";
+            d["AltMgr.StatsPurse"] = "钱包";
+            d["AltMgr.StatsBank"] = "银行";
+            d["AltMgr.StatsPrestige"] = "声望";
+            d["AltMgr.StatsSeraph"] = "Seraph";
+            d["AltMgr.StatsUrchin"] = "Urchin";
+            d["AltMgr.StatsClean"] = "干净";
+            d["AltMgr.StatsFlagged"] = "已标记";
+
             // ── Dynamic / code-behind ──
             d["AltMgr.Delete"] = "删除";
             // {0}=count

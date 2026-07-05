@@ -59,6 +59,65 @@ namespace RefreshToAccess2.Localization
             d["AltMgr.RefreshTokenTip"] = "Refresh token";
             d["AltMgr.CopyAllTip"] = "Copy all";
 
+            // ── Hypixel ban check ──
+            d["AltMgr.CheckBan"] = "Check Ban";
+            d["AltMgr.CheckBanTip"] = "Check this account's Hypixel ban status";
+            d["AltMgr.CheckAllBans"] = "Check All Ban Status";
+            d["AltMgr.Checking"] = "Checking ban status…";
+            // {0}=done {1}=total
+            d["AltMgr.CheckingProgress"] = "Checking bans… {0}/{1}";
+            // {0}=count
+            d["AltMgr.CheckedAllBans"] = "✓ Checked {0} account(s)";
+            d["AltMgr.BanClean"] = "Not banned";
+            // {0}=days
+            d["AltMgr.BanTemp"] = "Banned · {0}d left";
+            d["AltMgr.BanPerm"] = "Permanently banned";
+            d["AltMgr.BanUnknown"] = "Unknown";
+            d["AltMgr.BanError"] = "Check failed";
+            // {0}=date
+            d["AltMgr.BanLastChecked"] = "Last checked: {0}";
+            d["AltMgr.BanMessage"] = "Ban Message";
+            // {0}=error
+            d["AltMgr.BanCheckFailed"] = "Ban check failed:\n{0}";
+
+            // ── Hypixel stats tab ──
+            d["AltMgr.TabAccount"] = "Account";
+            d["AltMgr.TabHypixel"] = "Hypixel";
+            d["AltMgr.StatsLoad"] = "Load Hypixel Stats";
+            d["AltMgr.StatsLoading"] = "Loading stats…";
+            d["AltMgr.StatsRefresh"] = "Refresh";
+            d["AltMgr.StatsNotFound"] = "Player not found on Hypixel";
+            d["AltMgr.StatsRateLimited"] = "Rate limited — try again shortly";
+            d["AltMgr.StatsFetchError"] = "Could not fetch stats";
+            d["AltMgr.StatsEmpty"] = "No stats loaded yet";
+            // sections
+            d["AltMgr.StatsProfile"] = "PROFILE";
+            d["AltMgr.StatsBedwars"] = "BEDWARS";
+            d["AltMgr.StatsSkywars"] = "SKYWARS";
+            d["AltMgr.StatsSkyblock"] = "SKYBLOCK";
+            d["AltMgr.StatsPit"] = "THE PIT";
+            d["AltMgr.StatsBlacklist"] = "BLACKLISTS";
+            // fields
+            d["AltMgr.StatsRank"] = "Rank";
+            d["AltMgr.StatsNetworkLevel"] = "Network level";
+            d["AltMgr.StatsSession"] = "Status";
+            d["AltMgr.StatsOnline"] = "Online";
+            d["AltMgr.StatsOffline"] = "Offline";
+            d["AltMgr.StatsStar"] = "Star";
+            d["AltMgr.StatsLevel"] = "Level";
+            d["AltMgr.StatsWinstreak"] = "Winstreak";
+            d["AltMgr.StatsKdr"] = "KDR";
+            d["AltMgr.StatsFkdr"] = "FKDR";
+            d["AltMgr.StatsWlr"] = "WLR";
+            d["AltMgr.StatsNetworth"] = "Net worth";
+            d["AltMgr.StatsPurse"] = "Purse";
+            d["AltMgr.StatsBank"] = "Bank";
+            d["AltMgr.StatsPrestige"] = "Prestige";
+            d["AltMgr.StatsSeraph"] = "Seraph";
+            d["AltMgr.StatsUrchin"] = "Urchin";
+            d["AltMgr.StatsClean"] = "Clean";
+            d["AltMgr.StatsFlagged"] = "Flagged";
+
             // ── Dynamic / code-behind ──
             d["AltMgr.Delete"] = "Delete";
             // {0}=count

@@ -32,6 +32,9 @@ namespace RefreshToAccess2.Views
         private static readonly CubicEase _easeOut = new() { EasingMode = EasingMode.EaseOut };
         private const double BlurRadius = 24;
 
+        // Last selected detail tab index, for deciding page-flip slide direction.
+        private int _lastTabIndex = -1;
+
         public AltManagerView()
         {
             InitializeComponent();
@@ -111,6 +114,11 @@ namespace RefreshToAccess2.Views
             if (VM is null) return;
             VM.DetailItem = item;
             VM.IsDetailOpen = true;
+
+            // Reset tab state so the first tab shows without a switch transition,
+            // and default to the Account tab on each open.
+            _lastTabIndex = -1;
+            if (DetailTabs != null) DetailTabs.SelectedIndex = 0;
 
             ClearDetailAnims();
             DetailCard.Opacity = 0;
@@ -385,6 +393,118 @@ namespace RefreshToAccess2.Views
             }
         }
 
+        /// <summary>
+        /// Checks the detail account's Hypixel ban status. The badge on the card and the
+        /// detail overlay update in place via the card's change notifications.
+        /// </summary>
+        private async void OnCheckBan(object sender, RoutedEventArgs e)
+        {
+            if (VM?.DetailItem is null || _detailActionBusy) return;
+            var card = VM.DetailItem;
+
+            if (string.IsNullOrEmpty(card.RefToken) || card.RefToken == "N/A")
+            { _snack.Enqueue(Loc.T("AltMgr.NoRefreshToken")); return; }
+
+            _detailActionBusy = true;
+            try
+            {
+                _snack.Enqueue(Loc.T("AltMgr.Checking"));
+                await VM.CheckBanAsync(card.Block,
+                    new Progress<string>(m => _snack.Enqueue(m)));
+                _snack.Enqueue(card.BanBadgeText);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    Loc.T("AltMgr.BanCheckFailed", ex.Message),
+                    Loc.T("Common.Error"), MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                _detailActionBusy = false;
+            }
+        }
+
+        /// <summary>
+        /// On switching between the Account / Hypixel tabs: slides the new tab's content
+        /// in horizontally (page-flip — direction follows tab order) and smoothly tweens
+        /// the detail card's height to fit the new content so it doesn't jump.
+        /// </summary>
+        private void OnDetailTabChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (e.OriginalSource is not System.Windows.Controls.TabControl tc) return;
+            if (tc.SelectedContent is not FrameworkElement content) return;
+
+            int newIndex = tc.SelectedIndex;
+            int prevIndex = _lastTabIndex;
+            _lastTabIndex = newIndex;
+
+            // First selection when the overlay opens: no transition.
+            if (prevIndex < 0) return;
+
+            // Direction: moving to a later tab slides in from the right, earlier from the left.
+            double from = newIndex > prevIndex ? 46 : -46;
+
+            var slide = new TranslateTransform(from, 0);
+            content.RenderTransform = slide;
+            content.Opacity = 0;
+
+            var dur = TimeSpan.FromMilliseconds(320);
+            content.BeginAnimation(OpacityProperty,
+                new DoubleAnimation(0, 1, dur) { EasingFunction = _easeOut });
+            slide.BeginAnimation(TranslateTransform.XProperty,
+                new DoubleAnimation(from, 0, dur) { EasingFunction = _easeOut });
+
+            AnimateCardHeightToContent();
+        }
+
+        /// <summary>
+        /// Tweens <see cref="DetailCard"/>'s Height from its current rendered height to
+        /// the height it wants for the freshly selected tab, so the card grows/shrinks
+        /// smoothly instead of snapping.
+        /// </summary>
+        private void AnimateCardHeightToContent()
+        {
+            double current = DetailCard.ActualHeight;
+            if (current <= 0) return;
+
+            // Read the ACCURATE natural height for the new content: drop any animation,
+            // let the card size to Auto, force a real layout pass, then read ActualHeight.
+            // (Measure/DesiredSize alone is stale mid-switch and causes an end-frame jump.)
+            DetailCard.BeginAnimation(FrameworkElement.HeightProperty, null);
+            DetailCard.ClearValue(FrameworkElement.HeightProperty);
+            DetailCard.UpdateLayout();
+            double target = DetailCard.ActualHeight;
+
+            if (Math.Abs(target - current) < 1) return;
+
+            // Restore the starting height, then animate to the measured target. On
+            // completion, release to Auto — which now equals target, so no jump.
+            DetailCard.Height = current;
+            var anim = new DoubleAnimation(current, target,
+                TimeSpan.FromMilliseconds(320)) { EasingFunction = _easeOut };
+            anim.Completed += (_, __) =>
+            {
+                DetailCard.BeginAnimation(FrameworkElement.HeightProperty, null);
+                DetailCard.ClearValue(FrameworkElement.HeightProperty);
+            };
+            DetailCard.BeginAnimation(FrameworkElement.HeightProperty, anim);
+        }
+
+        /// <summary>Loads Hypixel stats for the detail account (khadow.lol API).</summary>
+        private async void OnLoadStats(object sender, RoutedEventArgs e)
+        {
+            if (VM?.DetailItem is null) return;
+            await VM.DetailItem.LoadStatsAsync();
+        }
+
+        /// <summary>Force-refreshes the currently displayed Hypixel stats.</summary>
+        private async void OnRefreshStats(object sender, RoutedEventArgs e)
+        {
+            if (VM?.DetailItem is null) return;
+            await VM.DetailItem.LoadStatsAsync(force: true);
+        }
+
         // ══════════════════════════════════════════════════════════
         //   SETTINGS ACTIONS
         // ══════════════════════════════════════════════════════════
@@ -397,6 +517,27 @@ namespace RefreshToAccess2.Views
             var tasks = items.Select(i => i.RefreshHeadAsync()).ToList();
             await Task.WhenAll(tasks);
             _snack.Enqueue(Loc.T("AltMgr.RefreshedHeads", items.Count));
+        }
+
+        private bool _checkAllBusy;
+
+        private async void OnCheckAllBans(object sender, RoutedEventArgs e)
+        {
+            if (VM is null || _checkAllBusy) return;
+            _checkAllBusy = true;
+            try
+            {
+                _snack.Enqueue(Loc.T("AltMgr.Checking"));
+                var progress = new Progress<(int done, int total)>(p =>
+                    _snack.Enqueue(Loc.T("AltMgr.CheckingProgress", p.done, p.total)));
+                int total = VM.AllProfiles().Count;
+                await VM.CheckAllBansAsync(progress);
+                _snack.Enqueue(Loc.T("AltMgr.CheckedAllBans", total));
+            }
+            finally
+            {
+                _checkAllBusy = false;
+            }
         }
 
         // ══════════════════════════════════════════════════════════
