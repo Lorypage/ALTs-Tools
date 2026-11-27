@@ -96,6 +96,12 @@ namespace RefreshToAccess2.Rendering
         private PreviewBackgroundMode _backgroundMode = PreviewBackgroundMode.Bright;
         private bool _skinIsLegacy;
 
+        private bool _dlssEnabled;
+        private int _dlssStylePresetIndex;
+        private float _dlssIntensity = 0.75f;
+        private float _dlssTone = 0.50f;
+        private float _dlssStructureStrength = 0.85f;
+
         private bool _skyRotate;
         private Vector3 _skyRotationAxis = Vector3.UnitY;
         private float _skyRotationSpeedDegreesPerSecond;
@@ -204,6 +210,20 @@ namespace RefreshToAccess2.Rendering
 
             if (_initialized)
                 LoadSkybox(_pendingPanoramaSource);
+        }
+
+        public void SetDlssNeuralRendering(
+            bool enabled,
+            int stylePresetIndex,
+            float intensity,
+            float tone,
+            float structureStrength)
+        {
+            _dlssEnabled = enabled;
+            _dlssStylePresetIndex = stylePresetIndex;
+            _dlssIntensity = Math.Clamp(intensity, 0f, 1f);
+            _dlssTone = Math.Clamp(tone, 0f, 1f);
+            _dlssStructureStrength = Math.Clamp(structureStrength, 0f, 1f);
         }
 
         public void ResetCamera(bool snap)
@@ -1250,7 +1270,19 @@ float4 PSMain(VSOut i) : SV_TARGET
             _context.RSSetViewports(new[] { vp });
             _context.RSSetState(_solidRaster);
             _context.OMSetRenderTargets(new[] { _rtv }, _dsv);
-            _context.ClearRenderTargetView(_rtv, new Color4(theme.SkyHorizon.X, theme.SkyHorizon.Y, theme.SkyHorizon.Z, 1f));
+            Color4 clearColor = new(theme.SkyHorizon.X, theme.SkyHorizon.Y, theme.SkyHorizon.Z, 1f);
+            if (_dlssEnabled && !DlssNeuralRenderingInterop.TryEvaluate(_dlssStylePresetIndex, _dlssIntensity, _dlssTone, _dlssStructureStrength))
+            {
+                // Software D3D11 fallback tint/contrast modulation when nvngx_dlssnr.dll is absent.
+                float toneBias = (_dlssTone - 0.5f) * 0.14f * _dlssIntensity;
+                float contrast = 1f + (_dlssStructureStrength - 0.5f) * 0.15f * _dlssIntensity;
+                clearColor = new Color4(
+                    Math.Clamp((clearColor.R + toneBias) * contrast, 0f, 1f),
+                    Math.Clamp(clearColor.G * contrast, 0f, 1f),
+                    Math.Clamp((clearColor.B - toneBias) * contrast, 0f, 1f),
+                    1f);
+            }
+            _context.ClearRenderTargetView(_rtv, clearColor);
             _context.ClearDepthStencilView(_dsv, DepthStencilClearFlags.Depth, 1.0f, 0);
 
             bool useSkybox = _backgroundMode == PreviewBackgroundMode.Panorama && _cubeSrv != null;

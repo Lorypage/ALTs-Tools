@@ -59,7 +59,7 @@ Turn a **Refresh Token** into an **Access Token** and log in with one click.
 
 - Two switchable modes: **Refresh → Access** and **Cookie → Token**
   (convert a Microsoft login cookie without logging in or saving)
-- Built-in launcher client identities:
+- Built-in launcher client identities *(for academic research only — never borrow other launchers' ClientIDs)*:
   `Vanilla` · `HMCL` · `PCL` · `Essential` ·
   `ksyz Alt Manager` · `BakaXL` · `LabyMod`, and more
 - Supports a **custom Client ID**
@@ -111,6 +111,7 @@ Manage your account's name and skin, and preview other players — what you see 
 - **Real-time 3D skin preview** (powered by Direct3D) · supports both `Classic` / `Slim` models
 - Look up and apply skins by **player name** · switch between multiple Minecraft panorama backgrounds
 - **Rename** your in-game name (IGN) right here via the official Minecraft API (no separate page needed)
+- **DLSS 5 Neural Rendering (nvngx_dlssnr.dll)**: Native hook for the leaked NBA 2K27 DLSS-NR library (Character Models Only, including community-modded RTX 4060 hard-run spoof) with 7 RenoDX-style presets (Style, Intensity, Tone, Structure Strength). Turns 64x64 Steve skins into photorealistic NBA 2K27 athletes while pushing GPU usage to a terrifying ~20% (58°C) on Lenovo Legion laptops.
 
 </td>
 </tr>

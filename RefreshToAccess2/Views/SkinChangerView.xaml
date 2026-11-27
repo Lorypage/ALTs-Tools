@@ -10,6 +10,7 @@
     <UserControl.Resources>
         <loc:EnumLocalizeConverter x:Key="EnumLoc"/>
         <helpers:InvertBoolConverter x:Key="InvertBool"/>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
         <DataTemplate x:Key="EnumItemTemplate">
             <TextBlock Text="{Binding Converter={StaticResource EnumLoc}}"/>
         </DataTemplate>
@@ -329,6 +330,77 @@
                         </StackPanel>
                     </Border>
 
+                    <!-- ── DLSS 5 Neural Rendering (nvngx_dlssnr.dll - NBA 2K27 Leak) ── -->
+                    <Border Padding="16"
+                            CornerRadius="12"
+                            Background="{DynamicResource MaterialDesignPaper}"
+                            BorderBrush="{DynamicResource MaterialDesignDivider}"
+                            BorderThickness="1"
+                            Margin="0,12,0,4">
+                        <StackPanel>
+                            <TextBlock Text="DLSS 5 Neural Rendering (nvngx_dlssnr.dll - NBA 2K27 Leak)"
+                                       FontSize="14"
+                                       FontWeight="SemiBold"
+                                       TextWrapping="Wrap"
+                                       Margin="0,0,0,4"/>
+                            <TextBlock Text="社区魔改 40 系列硬跑版 (RTX 4060 · Blackwell Spoof)"
+                                       FontSize="11"
+                                       Opacity="0.65"
+                                       Margin="0,0,0,10"/>
+
+                            <DockPanel Margin="0,0,0,12">
+                                <ToggleButton DockPanel.Dock="Right"
+                                              Style="{StaticResource MaterialDesignSwitchToggleButton}"
+                                              IsChecked="{Binding IsDlssEnabled}"
+                                              VerticalAlignment="Center"/>
+                                <TextBlock Text="启用 DLSS 5 神经渲染 (nvngx_dlssnr.dll / Character Models Only)"
+                                           FontSize="12"
+                                           TextWrapping="Wrap"
+                                           VerticalAlignment="Center"
+                                           Margin="0,0,8,0"/>
+                            </DockPanel>
+
+                            <ComboBox md:HintAssist.Hint="Style Preset"
+                                      ItemsSource="{Binding AvailableDlssStylePresets}"
+                                      SelectedItem="{Binding SelectedDlssStylePreset}"
+                                      IsEnabled="{Binding IsDlssEnabled}"
+                                      Margin="0,0,0,12">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding DisplayName}"/>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+
+                            <TextBlock Text="{Binding DlssIntensity, StringFormat=Intensity (强度): {0:F2}}"
+                                       FontSize="12" Opacity="0.78"/>
+                            <Slider Minimum="0" Maximum="1" TickFrequency="0.05"
+                                    Value="{Binding DlssIntensity}"
+                                    IsEnabled="{Binding IsDlssEnabled}"
+                                    Margin="0,2,0,8"/>
+
+                            <TextBlock Text="{Binding DlssTone, StringFormat=Tone (色调): {0:F2}}"
+                                       FontSize="12" Opacity="0.78"/>
+                            <Slider Minimum="0" Maximum="1" TickFrequency="0.05"
+                                    Value="{Binding DlssTone}"
+                                    IsEnabled="{Binding IsDlssEnabled}"
+                                    Margin="0,2,0,8"/>
+
+                            <TextBlock Text="{Binding DlssStructureStrength, StringFormat=Structure Strength (结构强度): {0:F2}}"
+                                       FontSize="12" Opacity="0.78"/>
+                            <Slider Minimum="0" Maximum="1" TickFrequency="0.05"
+                                    Value="{Binding DlssStructureStrength}"
+                                    IsEnabled="{Binding IsDlssEnabled}"
+                                    Margin="0,2,0,6"/>
+
+                            <TextBlock Text="{Binding DlssStatusNotice}"
+                                       FontSize="11"
+                                       Opacity="0.72"
+                                       TextWrapping="Wrap"
+                                       Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </Border>
+
                 </StackPanel>
             </ScrollViewer>
 
@@ -357,7 +429,29 @@
                     SkinVariant="{Binding SelectedVariant}"
                     AnimationMode="{Binding SelectedAnimationMode}"
                     BackgroundMode="{Binding SelectedBackgroundMode}"
-                    PanoramaSourcePath="{Binding PanoramaSourcePath}"/>
+                    PanoramaSourcePath="{Binding PanoramaSourcePath}"
+                    DlssEnabled="{Binding IsDlssEnabled}"
+                    DlssStyleIndex="{Binding SelectedDlssStyleIndex}"
+                    DlssIntensity="{Binding DlssIntensity}"
+                    DlssTone="{Binding DlssTone}"
+                    DlssStructureStrength="{Binding DlssStructureStrength}"/>
+            </Border>
+
+            <Border HorizontalAlignment="Right"
+                    VerticalAlignment="Bottom"
+                    Margin="0,0,12,12"
+                    Padding="10,6"
+                    CornerRadius="8"
+                    Background="#CC101418"
+                    BorderBrush="#6639FF14"
+                    BorderThickness="1"
+                    Visibility="{Binding IsDlssEnabled, Converter={StaticResource BoolToVis}}"
+                    IsHitTestVisible="False">
+                <TextBlock Text="{Binding DlssOsdText}"
+                           Foreground="#FF76B900"
+                           FontFamily="Consolas"
+                           FontSize="11"
+                           FontWeight="SemiBold"/>
             </Border>
 
             <TextBlock Text="{loc:Tr Skin.OrbitHint}"
