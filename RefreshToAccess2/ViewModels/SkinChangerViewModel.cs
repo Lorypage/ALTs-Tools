@@ -1,6 +1,7 @@
 using RefreshToAccess2.Helpers;
 using RefreshToAccess2.Localization;
 using RefreshToAccess2.Models;
+using RefreshToAccess2.Rendering;
 using RefreshToAccess2.Services;
 using System;
 using System.Collections.Generic;
@@ -70,6 +71,14 @@ namespace RefreshToAccess2.ViewModels
         private PreviewAnimationMode _selectedAnimationMode = PreviewAnimationMode.Auto;
         private int _cameraResetNonce;
 
+        private bool _isDlssEnabled = true;
+        private DlssNeuralRenderingInterop.StylePresetOption _selectedDlssStylePreset =
+            DlssNeuralRenderingInterop.StylePresets[0];
+        private double _dlssIntensity = 0.75;
+        private double _dlssTone = 0.50;
+        private double _dlssStructureStrength = 0.85;
+        private string _dlssStatusNotice = string.Empty;
+
         private string? _otherPlayerName;
         private string _otherPlayerResolvedName = "-";
         private string _otherPlayerResolvedId = "-";
@@ -81,6 +90,8 @@ namespace RefreshToAccess2.ViewModels
         public Array AvailableBackgroundModes { get; } = Enum.GetValues(typeof(PreviewBackgroundMode));
         public Array AvailableAnimationModes { get; } = Enum.GetValues(typeof(PreviewAnimationMode));
         public IReadOnlyList<PanoramaPresetOption> AvailablePanoramaPresets => _availablePanoramaPresets;
+        public IReadOnlyList<DlssNeuralRenderingInterop.StylePresetOption> AvailableDlssStylePresets =>
+            DlssNeuralRenderingInterop.StylePresets;
 
         public RelayCommand BrowseSkinCommand { get; }
         public RelayCommand ClearPanoramaCommand { get; }
@@ -251,6 +262,66 @@ namespace RefreshToAccess2.ViewModels
             set => SetField(ref _cameraResetNonce, value);
         }
 
+        public bool IsDlssEnabled
+        {
+            get => _isDlssEnabled;
+            set
+            {
+                if (!SetField(ref _isDlssEnabled, value))
+                    return;
+
+                if (value)
+                {
+                    DlssNeuralRenderingInterop.TryLoadNativeLibrary(out string dlssStatus);
+                    DlssStatusNotice = dlssStatus;
+                    StatusMessage = dlssStatus;
+                }
+                else
+                {
+                    DlssStatusNotice = "DLSS 5 神经渲染已关闭（拯救者风扇已回落至静音模式）";
+                }
+            }
+        }
+
+        public DlssNeuralRenderingInterop.StylePresetOption SelectedDlssStylePreset
+        {
+            get => _selectedDlssStylePreset;
+            set
+            {
+                if (SetField(ref _selectedDlssStylePreset, value) && value != null)
+                    OnPropertyChanged(nameof(SelectedDlssStyleIndex));
+            }
+        }
+
+        public int SelectedDlssStyleIndex => _selectedDlssStylePreset?.Index ?? 0;
+
+        public double DlssIntensity
+        {
+            get => _dlssIntensity;
+            set => SetField(ref _dlssIntensity, value);
+        }
+
+        public double DlssTone
+        {
+            get => _dlssTone;
+            set => SetField(ref _dlssTone, value);
+        }
+
+        public double DlssStructureStrength
+        {
+            get => _dlssStructureStrength;
+            set => SetField(ref _dlssStructureStrength, value);
+        }
+
+        public string DlssStatusNotice
+        {
+            get => _dlssStatusNotice;
+            set => SetField(ref _dlssStatusNotice, value);
+        }
+
+        public string DlssOsdText =>
+            "DLSS-NR (nvngx_dlssnr.dll): ACTIVE | Arch: Blackwell RTX 50-Series (RTX 4060 社区魔改硬跑版) | FPS Impact: -55% (71 -> 35 FPS) | GPU: 23% (58°C) | 拯救者风扇状态: 即将起飞";
+
         public string? OtherPlayerName
         {
             get => _otherPlayerName;
@@ -284,9 +355,13 @@ namespace RefreshToAccess2.ViewModels
 
         public async Task EnsureLoadedAsync()
         {
+            string dlssInitStatus = await DlssNeuralRenderingInterop.EnsureFirstLaunchProvisionedAsync();
+            if (IsDlssEnabled)
+                DlssStatusNotice = dlssInitStatus;
+
             if (!_converter.LoggedIn || string.IsNullOrWhiteSpace(_converter.AccessToken))
             {
-                ClearProfileState(Loc.T("Skin.Status.PreviewOrSignIn"));
+                ClearProfileState(IsDlssEnabled ? dlssInitStatus : Loc.T("Skin.Status.PreviewOrSignIn"));
                 return;
             }
 
